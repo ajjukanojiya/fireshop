@@ -1,49 +1,42 @@
-// frontend/src/pages/Home.jsx
-import { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import api from "../api/api";
-import { Link } from "react-router-dom";
+import Header from "../components/Header";
+import CategoryChips from "../components/CategoryChips";
+import ProductCard from "../components/ProductCard";
 
-export default function Home() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function Home(){
+  const [products,setProducts] = useState([]);
+  const [categories,setCategories] = useState([]);
+  const [selected,setSelected] = useState(null);
 
-  useEffect(() => {
-    (async () => {
+  useEffect(()=> {
+    (async ()=>{
       try {
-        const res = await api.get("/products");
-        // API returns paginated object; products are in res.data.data
-        const data = res.data?.data ?? res.data;
-        setProducts(data);
-      } catch (err) {
-        console.error("Failed to fetch products", err);
-      } finally {
-        setLoading(false);
-      }
+        const res = await api.get('/products');
+        const list = res.data.data || res.data;
+        setProducts(list || []);
+        // derive category names if present
+        const cats = Array.from(new Set((list||[]).map(p=> p.category?.name || 'General')));
+        setCategories(cats);
+      } catch(e){ console.error(e); }
     })();
-  }, []);
+  },[]);
 
-  if (loading) return <div style={{ padding: 20 }}>Loading products...</div>;
-  if (!products?.length) return <div style={{ padding: 20 }}>No products found.</div>;
+  const filtered = selected ? products.filter(p => (p.category?.name || 'General')===selected) : products;
+
+  const onQuickView = (product) => {
+    window.location.href = `/product/${product.id}`;
+  };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Products</h2>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(220px,1fr))", gap: 16 }}>
-        {products.map((p) => (
-          <div key={p.id} style={{ border: "1px solid #ddd", borderRadius: 8, overflow: "hidden", padding: 10 }}>
-            <img
-              src={p.thumbnail_url || "https://via.placeholder.com/300x180"}
-              alt={p.title}
-              style={{ width: "100%", height: 140, objectFit: "cover" }}
-            />
-            <h3 style={{ fontSize: 16, margin: "8px 0" }}>{p.title}</h3>
-            <p style={{ margin: 0 }}>₹ {p.price}</p>
-            <Link to={`/product/${p.id}`} style={{ display: "inline-block", marginTop: 8 }}>
-              View
-            </Link>
-          </div>
-        ))}
-      </div>
+    <div className="min-h-screen">
+      <Header />
+      <main className="max-w-6xl mx-auto px-4 py-6">
+        <CategoryChips categories={categories} selected={selected} onSelect={setSelected}/>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {filtered.map(p => <ProductCard key={p.id} product={p} onQuickView={onQuickView} />)}
+        </div>
+      </main>
     </div>
   );
 }

@@ -1,72 +1,43 @@
-// frontend/src/pages/Product.jsx
-import { useEffect, useState, useRef } from "react";
+import React,{useEffect,useState} from "react";
 import { useParams } from "react-router-dom";
 import api from "../api/api";
-import ReactPlayer from "react-player";
 
+export default function Product(){
+  const { id } = useParams();
+  const [p,setP] = useState(null);
+  useEffect(()=> {
+    (async ()=> {
+      try {
+        const res = await api.get(`/products/${id}`);
+        setP(res.data);
+      } catch(e){ console.error(e); }
+    })();
+  },[id]);
 
-export default function Test() {
-  const videoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+  if(!p) return <div className="p-6">Loading...</div>;
+
+  const videoUrl = p.videos?.length ? `http://127.0.0.1:8000/stream/${p.videos[0].url}` : null;
+
   return (
-    <div style={{ maxWidth: 900 }}>
-      <h3>Test public video</h3>
-      <ReactPlayer url={videoUrl} controls width="100%" />
-      <hr />
-      <video controls width="640">
-        <source src={videoUrl} type="video/mp4" />
-      </video>
+    <div className="max-w-5xl mx-auto px-4 py-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <img src={p.thumbnail_url} alt={p.title} className="w-full h-96 object-cover rounded-lg" loading="lazy" />
+          {videoUrl && (
+            <div className="mt-4">
+              <video controls className="w-full rounded-md" crossOrigin="anonymous">
+                <source src={videoUrl} type="video/mp4" />
+              </video>
+            </div>
+          )}
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold">{p.title}</h1>
+          <p className="mt-2 text-lg text-emerald-600">₹ {p.price}</p>
+          <p className="mt-4 text-slate-700">{p.description}</p>
+          <button className="mt-6 bg-amber-500 text-white px-4 py-2 rounded-md">Buy Now</button>
+        </div>
+      </div>
     </div>
   );
 }
-
-// export default function ProductPage() {
-//   const { id } = useParams();
-//   const [product, setProduct] = useState(null);
-//   const [loading, setLoading] = useState(true);
-//   const playerRef = useRef(null);
-
-//   useEffect(() => {
-//     (async () => {
-//       try {
-//         const res = await api.get(`/products/${id}`);
-//         // If your controller returns product directly: res.data
-//         // If wrapped: res.data.data -> adapt accordingly
-//         const p = res.data?.data ?? res.data;
-//         setProduct(p);
-//       } catch (err) {
-//         console.error(err);
-//       } finally {
-//         setLoading(false);
-//       }
-//     })();
-//   }, [id]);
-
-//   if (loading) return <div style={{ padding: 20 }}>Loading...</div>;
-//   if (!product) return <div style={{ padding: 20 }}>Product not found</div>;
-
-//   const videoUrl = product.video_url ?? (product.videos && product.videos[0]?.url);
-
-//   return (
-//     <div style={{ padding: 20 }}>
-//       <h2>{product.title}</h2>
-//       <div style={{ maxWidth: 900 }}>
-//         {videoUrl ? (
-//           <div style={{ position: "relative", paddingTop: "56.25%" }}>
-//             <ReactPlayer
-//               ref={playerRef}
-//               url={videoUrl}
-//               controls
-//               width="100%"
-//               height="100%"
-//               style={{ position: "absolute", top: 0, left: 0 }}
-//             />
-//           </div>
-//         ) : (
-//           <img src={product.thumbnail_url || "https://via.placeholder.com/800x450"} alt={product.title} style={{ width: "100%" }} />
-//         )}
-//         <p style={{ marginTop: 10 }}>{product.description}</p>
-//         <p>Price: ₹{product.price}</p>
-//       </div>
-//     </div>
-//   );
-// }

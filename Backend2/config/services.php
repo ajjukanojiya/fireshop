@@ -35,4 +35,16 @@ return [
         ],
     ],
 
+    'twilio' => [
+    'sid' => env('TWILIO_SID'),
+    'token' => env('TWILIO_TOKEN'),
+    'from' => env('TWILIO_FROM'),
+    ],
+     
+    'google' => [
+  'client_id' => env('GOOGLE_CLIENT_ID'),
+  'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+],
+
+
 ];
