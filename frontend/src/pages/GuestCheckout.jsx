@@ -28,6 +28,9 @@ export default function GuestCheckout(){
         <textarea placeholder="Address" value={address} onChange={e=>setAddress(e.target.value)} className="w-full border rounded-md px-3 py-2 mb-3" rows="4" />
         <button onClick={placeOrder} className="w-full bg-teal-500 text-white py-2 rounded-md">Place Order</button>
       </div>
+      
     </div>
+
+    
   );
 }

@@ -30,19 +30,22 @@ class AuthController extends Controller
 
         // send via Twilio (or other provider)
         try {
-            $sid = config('services.twilio.sid');
-            $token = config('services.twilio.token');
-            $from = config('services.twilio.from');
-            if ($sid && $token && $from) {
-                $client = new Client($sid, $token);
-                $client->messages->create($phone, [
-                    'from' => $from,
-                    'body' => "Your verification code is: {$otp}"
-                ]);
-            } else {
-                // dev: log the OTP
-                \Log::info("OTP for {$phone}: {$otp}");
-            }
+
+            return response()->json(['message'=>$otp]);
+            // $sid = config('services.twilio.sid');
+            // $token = config('services.twilio.token');
+            // $from = config('services.twilio.from');
+            // if ($sid && $token && $from) {
+            //     $client = new Client($sid, $token);
+            //     $client->messages->create($phone, [
+            //         'from' => $from,
+            //         'body' => "Your verification code is: {$otp}"
+            //     ]);
+            // }
+            //  else {
+            //     // dev: log the OTP
+            //     \Log::info("OTP for {$phone}: {$otp}");
+            // }
         } catch (\Throwable $e) {
             \Log::error("Twilio error: ".$e->getMessage());
             // still allow (dev) or return error for production
@@ -52,7 +55,9 @@ class AuthController extends Controller
     }
 
     public function verifyOtp(Request $r)
-    {
+    {     
+      
+        try {
         $r->validate(['phone'=>'required','otp'=>'required']);
         $cacheKey = "otp:login:{$r->phone}";
         $cached = Cache::get($cacheKey);
@@ -65,6 +70,7 @@ class AuthController extends Controller
             ['phone' => $r->phone],
             ['name' => null]
         );
+       
         $user->phone_verified_at = now();
         $user->save();
 
@@ -81,5 +87,9 @@ class AuthController extends Controller
             'token' => $token,
             'user' => $user
         ]);
+     } catch (\Throwable $e) {
+    \Log::error('Verify OTP failed: '.$e->getMessage());
+    return response()->json(['error'=>'Internal Server Error'], 500);
+}
     }
 }

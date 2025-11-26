@@ -9,7 +9,7 @@ use App\Models\Product;
 class ProductController extends Controller
 {
     public function index() {
-        $products = Product::with('images')->paginate(12);
+        $products = Product::with('images','videos')->paginate(12);
         return response()->json($products);
       }
       public function show($id) {

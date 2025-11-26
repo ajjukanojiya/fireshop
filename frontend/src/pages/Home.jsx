@@ -14,6 +14,7 @@ export default function Home(){
       try {
         const res = await api.get('/products');
         const list = res.data.data || res.data;
+        console.log('aaaa',res);
         setProducts(list || []);
         // derive category names if present
         const cats = Array.from(new Set((list||[]).map(p=> p.category?.name || 'General')));

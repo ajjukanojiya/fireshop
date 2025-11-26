@@ -1,0 +1,214 @@
+Ract basic
+
+
+
+Tag	            Kaam
+<Router>	Routing enable karta hai, app ko URL-based banata hai
+<Routes>	Sare routes ko group karta hai
+<Route>	Ek specific page rule define karta hai
+<Navigate>	Redirect karta hai (optional)
+
+
+One Line Summary
+
+👉 Router = Pure app ke liye URL system
+👉 Routes = Pages ki list
+👉 Route = Ek single page rule
+
+
+<BrowserRouter>   router ka ek type hian 
+
+page reload ke bina URL change karne ke liye
+
+
+
+
+
+🔥 FireShop Project — Current Status & Next Steps
+Phase 1 — Project Setup (Completed ✅)
+
+Backend
+
+Laravel 11 project setup
+
+.env config और DB connection setup
+
+Models, Migrations, Controllers setup
+
+Tables created:
+
+products, categories
+
+orders, order_items
+
+cart_items
+
+video_analytics
+
+Relationships defined:
+
+Product → Category (belongsTo)
+
+CartItem → Product (belongsTo)
+
+Order → OrderItem (hasMany)
+
+OrderItem → Product (belongsTo)
+
+Frontend
+
+React + Vite project setup
+
+TailwindCSS configured
+
+Basic routing with react-router-dom
+
+CartContext created
+
+UserContext created for authentication
+
+Pages created:
+
+Home, Product, Login, VerifyOtp, CartPage, GuestCheckout
+
+API & Axios
+
+api.js setup with baseURL and token handling
+
+Add to cart API implemented
+
+OTP verification API implemented
+
+Guest cart merge implemented
+
+✅ Phase 1 complete — Project runs locally, frontend connects with backend, products load, videos & images visible.
+
+Phase 2 — Cart / Guest User / Authentication (Completed ✅)
+
+Cart Functionality
+
+Add to cart (guest + logged-in user)
+
+Header badge updates dynamically
+
+Quantity update / Remove item implemented on CartPage
+
+Cart merges after login via mergeGuestToServer
+
+Authentication
+
+OTP login implemented
+
+Token saved in localStorage
+
+Axios Authorization header set
+
+VerifyOtp page sets user context after successful verification
+
+Guest cart merges automatically after login
+
+✅ Phase 2 complete — Cart & OTP login flow fully working
+
+Phase 3 — Product Display / UI Enhancements (Completed ✅)
+
+ProductCard component
+
+Thumbnail image
+
+Video quick view button
+
+Price & Add button
+
+Product listing page
+
+Categories filter
+
+Lazy loading images
+
+Tailwind styled responsive cards
+
+Header component
+
+Search bar
+
+Cart link with badge
+
+Login / Logout button
+
+✅ Phase 3 complete — Product UI fully functional, mobile responsive
+
+Phase 4 — Contexts / Global State (Completed ✅)
+
+CartContext
+
+Cart operations (add, update, remove, merge)
+
+Maintains cart state globally
+
+UserContext
+
+Manages logged-in user
+
+Provides setUser for OTP login
+
+App wrapped with Providers in main.jsx
+
+<CartProvider>
+
+<UserProvider>
+
+✅ Phase 4 complete — State management ready
+
+Phase 5 — Current State ✅
+
+All major frontend pages implemented
+
+Product add to cart works (guest + logged-in)
+
+Cart badge updates dynamically
+
+OTP login / token storage works
+
+Guest cart merges on login
+
+Everything till checkout ready
+
+Phase 6 — Next Steps / Pending Tasks
+
+Checkout Flow
+
+Cart → Guest checkout / Logged-in user checkout
+
+Collect billing info (name, phone, email if guest)
+
+Merge guest cart if logged in
+
+Payment Integration
+
+Integrate test payment API
+
+Calculate total amount from cart
+
+Apply any discounts if needed
+
+Order Processing
+
+Create orders and order_items entries after payment success
+
+Update stock in products table
+
+UI Enhancements
+
+Payment page / checkout page design
+
+Loader / feedback messages
+
+Mobile responsiveness
+
+Optional / Future
+
+User order history page
+
+Video analytics tracking (views, plays)
+
+Admin panel for managing products / orders

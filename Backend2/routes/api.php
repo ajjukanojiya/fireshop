@@ -18,10 +18,19 @@ Route::prefix('v1')->group(function(){
     Route::get('products',[ProductController::class,'index']);
     Route::get('products/{id}',[ProductController::class,'show']);
   
-    Route::get('cart',[CartController::class,'index']);
-    Route::post('cart/add',[CartController::class,'add']);
-    Route::delete('cart/{id}',[CartController::class,'remove']);
-  
+    // Route::get('cart',[CartController::class,'index']);
+    // Route::post('cart/add',[CartController::class,'add']);
+    // Route::delete('cart/{id}',[CartController::class,'remove']);
+
+ 
+  });
+
+ Route::prefix('v1')->middleware('auth:sanctum')->group(function(){
+    Route::get('cart', [CartController::class,'index']);
+    Route::post('cart/add', [CartController::class,'add']);
+    Route::patch('cart/{id}', [CartController::class,'update']);
+    Route::delete('cart/{id}', [CartController::class,'remove']);
+    Route::post('cart/clear', [CartController::class,'clear']);  
     Route::post('orders/create',[OrderController::class,'create']);
   });
 
@@ -30,3 +39,8 @@ Route::prefix('v1')->group(function(){
     Route::post('auth/verify-otp',[AuthController::class,'verifyOtp']);
     Route::post('auth/google',[GoogleAuthController::class,'loginWithGoogle']);
   });
+
+
+ Route::prefix('v1')->middleware('auth:sanctum')->group(function(){
+    Route::post('/checkout', [CheckoutController::class, 'checkout']);
+});
