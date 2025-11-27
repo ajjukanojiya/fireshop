@@ -8,10 +8,18 @@ use App\Http\Controllers\API\V1\CartController;
 use App\Http\Controllers\API\V1\OrderController;
 use App\Http\Controllers\API\V1\AuthController;
 use App\Http\Controllers\API\V1\GoogleAuthController;
+use App\Http\Controllers\API\V1\CheckoutController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
+
+Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
+    Route::get('/auth/me', function (Request $request) {
+        return response()->json(['user' => $request->user()]);
+    });
+});
 
 
 Route::prefix('v1')->group(function(){
