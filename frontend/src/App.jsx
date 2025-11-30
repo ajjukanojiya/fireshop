@@ -10,6 +10,7 @@ import MyOrders from "./pages/MyOrders";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import OrderSuccess from "./pages/OrderSuccess";
 
+
 export default function App(){
   return (
     <Routes>
@@ -24,6 +25,7 @@ export default function App(){
       <Route path="/orders" element={<MyOrders />} />
       <Route path="/order/:orderId" element={<OrderConfirmation />} />
       <Route path="/order-success/:orderId" element={<OrderSuccess />} />
+      <Route path="/my-orders" element={<MyOrders />} />
     </Routes>
   );
 }

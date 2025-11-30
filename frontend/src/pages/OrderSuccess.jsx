@@ -27,14 +27,18 @@ export default function OrderSuccess() {
     <div className="min-h-screen flex flex-col items-center p-4">
       <h2 className="text-2xl font-bold mb-4">Order Placed Successfully!</h2>
       <p className="mb-4">Order ID: <strong>{order.id}</strong></p>
-      <p className="mb-4">Total: <strong>${order.total.toFixed(2)}</strong></p>
+      <p className="mb-4">
+  Total: <strong>₹{Number(order.total_amount).toFixed(2)}</strong>
+</p>
+
+
 
       <div className="w-full max-w-lg bg-white p-4 rounded-md shadow">
         <h3 className="font-semibold mb-2">Items:</h3>
         {order.items.map((item) => (
           <div key={item.id} className="flex justify-between border-b py-2">
             <span>{item.product.title} x {item.quantity}</span>
-            <span>${(item.price * item.quantity).toFixed(2)}</span>
+            <span>${(item.product.price * item.quantity).toFixed(2)}</span>
           </div>
         ))}
       </div>

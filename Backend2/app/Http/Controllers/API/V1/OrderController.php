@@ -56,4 +56,22 @@ class OrderController extends Controller
             'order' => $order
         ]);
     }
+
+    // Get all orders of the logged-in user
+public function myOrders()
+{
+    $user = Auth::user();
+    if(!$user) return response()->json(['message'=>'Unauthenticated'], 401);
+
+    $orders = Order::with('items.product')
+        ->where('user_id', $user->id)
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    return response()->json([
+        'message' => 'Orders fetched successfully',
+        'orders' => $orders
+    ]);
+}
+
 }
