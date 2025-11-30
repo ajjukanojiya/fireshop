@@ -9,34 +9,51 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\CartItem;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
-    public function create(Request $r) {
-        // For dev: get user id from request or use guest (null)
-        $userId = $r->user()?->id;
-        $cartItems = CartItem::when($userId, fn($q)=>$q->where('user_id',$userId))->get();
-        if ($cartItems->isEmpty()) return response()->json(['message'=>'cart empty'],400);
-        $total = $cartItems->sum(fn($c)=> $c->quantity * $c->price_at_add);
-    
-        DB::beginTransaction();
-        try {
-          $order = Order::create(['user_id'=>$userId,'total_amount'=>$total,'status'=>'pending']);
-          foreach($cartItems as $ci){
-            OrderItem::create([
-              'order_id'=>$order->id,
-              'product_id'=>$ci->product_id,
-              'quantity'=>$ci->quantity,
-              'unit_price'=>$ci->price_at_add
-            ]);
-          }
-          // clear cart
-          if ($userId) CartItem::where('user_id',$userId)->delete();
-          DB::commit();
-          return response()->json($order,201);
-        } catch (\Throwable $e) {
-          DB::rollBack();
-          return response()->json(['error'=> $e->getMessage()],500);
-        }
+  public function index(Request $request)
+  {
+      $user = Auth::user();
+      $orders = Order::where('user_id', $user->id)
+                      ->withCount('items')
+                      ->orderBy('created_at', 'desc')
+                      ->paginate(20);
+
+      // return as 'orders' to match frontend expectations
+      return response()->json(['orders' => $orders]);
+  }
+
+  // GET /api/v1/orders/{id}
+  public function show($id)
+  {
+      $user = Auth::user();
+      $order = Order::where('id', $id)->where('user_id', $user->id)
+                    ->with(['items.product'])
+                    ->first();
+
+      if (!$order) {
+          return response()->json(['message' => 'Order not found'], 404);
       }
+
+      return response()->json(['order' => $order]);
+  }
+
+  public function orderSuccess($orderId)
+    {
+        $user = Auth::user();
+        if(!$user) return response()->json(['message'=>'Unauthenticated'], 401);
+
+        $order = Order::with('items.product')->where('id', $orderId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if(!$order) return response()->json(['message'=>'Order not found'], 404);
+
+        return response()->json([
+            'message' => 'Order details fetched successfully',
+            'order' => $order
+        ]);
+    }
 }

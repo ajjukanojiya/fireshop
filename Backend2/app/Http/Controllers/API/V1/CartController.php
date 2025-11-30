@@ -24,46 +24,116 @@ class CartController extends Controller
     }
 
     // add item (if exists increment)
+    // public function add(Request $r)
+    // {
+    //     $v = Validator::make($r->all(), [
+    //         'product_id'=>'required|integer|exists:products,id',
+    //         'quantity'=>'integer|min:1',
+    //         'meta'=>'nullable|array'
+    //     ]);
+    //     if ($v->fails()) return response()->json($v->errors(), 422);
+          
+    //     $qty = $r->get('quantity', 1);
+    //     $product = Product::findOrFail($r->product_id);
+    //     $user = Auth::user();
+    // //  return ($user);
+    //     // if not logged in, return 401 and frontend will use localStorage
+    //     if (!$user) return response()->json(['message'=>'Unauthenticated'], 401);
+
+    //     // check stock
+    //     if ($product->stock < $qty) {
+    //         return response()->json(['message'=>'Insufficient stock'], 422);
+    //     }
+
+    //     // transaction safe
+    //     return DB::transaction(function() use($user,$product,$qty,$r){
+    //         $item = CartItem::where('user_id',$user->id)->where('product_id',$product->id)->first();
+    //         if ($item) {
+    //             $item->quantity += $qty;
+    //             $item->meta = $r->meta ? $r->meta : $item->meta;
+    //             $item->save();
+    //         } else {
+    //             $item = CartItem::create([
+    //                 'user_id'=>$user->id,
+    //                 'product_id'=>$product->id,
+    //                 'quantity'=>$qty,
+    //                 'meta'=>$r->meta ?? null
+    //             ]);
+    //         }
+    //         $item->load('product');
+    //         return response()->json(['item'=>$item, 'message'=>'Added to cart']);
+    //     });
+    // }
+
     public function add(Request $r)
-    {
+{
+    try {
+
+        // Validate input
         $v = Validator::make($r->all(), [
-            'product_id'=>'required|integer|exists:products,id',
-            'quantity'=>'integer|min:1',
-            'meta'=>'nullable|array'
+            'product_id' => 'required|integer|exists:products,id',
+            'quantity'   => 'integer|min:1',
+            'meta'       => 'nullable|array'
         ]);
-        if ($v->fails()) return response()->json($v->errors(), 422);
+
+        if ($v->fails()) {
+            return response()->json($v->errors(), 422);
+        }
 
         $qty = $r->get('quantity', 1);
         $product = Product::findOrFail($r->product_id);
         $user = Auth::user();
-    //  return ($user);
-        // if not logged in, return 401 and frontend will use localStorage
-        if (!$user) return response()->json(['message'=>'Unauthenticated'], 401);
+        
 
-        // check stock
-        if ($product->stock < $qty) {
-            return response()->json(['message'=>'Insufficient stock'], 422);
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
-        // transaction safe
-        return DB::transaction(function() use($user,$product,$qty,$r){
-            $item = CartItem::where('user_id',$user->id)->where('product_id',$product->id)->first();
+        // Check stock
+        if ($product->stock < $qty) {
+            return response()->json(['message' => 'Insufficient stock'], 422);
+        }
+
+        // Transaction
+        return DB::transaction(function () use ($user, $product, $qty, $r) {
+
+            $item = CartItem::where('user_id', $user->id)
+                ->where('product_id', $product->id)
+                ->first();
+
             if ($item) {
                 $item->quantity += $qty;
                 $item->meta = $r->meta ? $r->meta : $item->meta;
                 $item->save();
             } else {
                 $item = CartItem::create([
-                    'user_id'=>$user->id,
-                    'product_id'=>$product->id,
-                    'quantity'=>$qty,
-                    'meta'=>$r->meta ?? null
+                    'user_id'    => $user->id,
+                    'product_id' => $product->id,
+                    'quantity'   => $qty,
+                    'meta'       => $r->meta ?? null
                 ]);
             }
+
             $item->load('product');
-            return response()->json(['item'=>$item, 'message'=>'Added to cart']);
+
+            return response()->json([
+                'item'    => $item,
+                'message' => 'Added to cart'
+            ]);
         });
+
+    } catch (\Exception $e) {
+
+        // Log for debugging
+        Log::error('Cart Add Error: '.$e->getMessage());
+
+        return response()->json([
+            'message' => 'Something went wrong',
+            'error'   => $e->getMessage()   // remove in production
+        ], 500);
     }
+}
+
 
     // update quantity or meta
     public function update(Request $r, $id)

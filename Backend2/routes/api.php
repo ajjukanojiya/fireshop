@@ -25,7 +25,7 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
 Route::prefix('v1')->group(function(){
     Route::get('products',[ProductController::class,'index']);
     Route::get('products/{id}',[ProductController::class,'show']);
-  
+    Route::post('checkout/guest', [CheckoutController::class,'guestCheckout']);
     // Route::get('cart',[CartController::class,'index']);
     // Route::post('cart/add',[CartController::class,'add']);
     // Route::delete('cart/{id}',[CartController::class,'remove']);
@@ -39,7 +39,7 @@ Route::prefix('v1')->group(function(){
     Route::patch('cart/{id}', [CartController::class,'update']);
     Route::delete('cart/{id}', [CartController::class,'remove']);
     Route::post('cart/clear', [CartController::class,'clear']);  
-    Route::post('orders/create',[OrderController::class,'create']);
+   
   });
 
   Route::prefix('v1')->group(function(){
@@ -51,4 +51,9 @@ Route::prefix('v1')->group(function(){
 
  Route::prefix('v1')->middleware('auth:sanctum')->group(function(){
     Route::post('/checkout', [CheckoutController::class, 'checkout']);
+    // Orders: user orders list + single order view
+    Route::post('orders/create',[OrderController::class,'create']);
+        Route::get('/orders', [OrderController::class, 'index']);
+        Route::get('/orders/{id}', [OrderController::class, 'show']);
+        Route::get('/order-success/{orderId}', [OrderController::class, 'orderSuccess']);
 });

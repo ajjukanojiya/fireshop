@@ -10,14 +10,32 @@ export default function GuestCheckout(){
 
   const placeOrder = async () => {
     try {
-      // This is placeholder. Your order endpoint may need cart details.
-      const res = await api.post('/orders/create', {});
-      alert('Order created: '+(res.data.id || 'ok'));
-      navigate('/');
-    } catch(e){
-      alert('Error: '+(e?.response?.data?.message || e.message));
+      // Build items array from cart. For now demo use single hard-coded item or integrate cart state
+      const items = [
+        // replace with real cart data
+        { product_id: 1, quantity: 1 }
+      ];
+  
+      const payload = {
+        name,
+        phone,
+        address,
+        items
+      };
+  
+      const res = await api.post('/checkout/guest', payload);
+    //  alert('Order created: ' + (res.data.order_id || 'ok'));
+      localStorage.removeItem('cart');     // persistent storage
+    alert('Order created: ' + res.data.order_id);
+    navigate(`/order-success/${res.data.order_id || ''}`);
+
+     // navigate('/');
+    } catch (e) {
+      console.error(e);
+      alert('Error: ' + (e?.response?.data?.message || e.message));
     }
   };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">

@@ -6,7 +6,9 @@ import VerifyOtp from "./pages/VerifyOtp";
 import GuestCheckout from "./pages/GuestCheckout";
 import CartPage from "./pages/Cart";
 import CheckoutPage from "./pages/CheckoutPage";
-
+import MyOrders from "./pages/MyOrders";
+import OrderConfirmation from "./pages/OrderConfirmation";
+import OrderSuccess from "./pages/OrderSuccess";
 
 export default function App(){
   return (
@@ -19,6 +21,9 @@ export default function App(){
       <Route path="/cart" element={<CartPage/>} />
       <Route path="*" element={<Navigate to="/" replace />} />
       <Route path="/checkout" element={<CheckoutPage />} />
+      <Route path="/orders" element={<MyOrders />} />
+      <Route path="/order/:orderId" element={<OrderConfirmation />} />
+      <Route path="/order-success/:orderId" element={<OrderSuccess />} />
     </Routes>
   );
 }
