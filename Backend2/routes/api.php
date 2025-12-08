@@ -57,5 +57,6 @@ Route::prefix('v1')->group(function(){
         Route::get('/orders/{id}', [OrderController::class, 'show']);
         Route::get('/order-success/{orderId}', [OrderController::class, 'orderSuccess']);
         Route::get('/my-orders', [OrderController::class, 'myOrders']);
+        Route::post('orders/create-guest',[OrdersController::class,'createGuest']);
 
 });

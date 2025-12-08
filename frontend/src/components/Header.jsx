@@ -11,11 +11,32 @@ export default function Header() {
   const { items } = useCart();
   const { user, setUser } = useUser();
 
+  const [token] = useState(localStorage.getItem('token'));
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [open, setOpen] = useState(false);
+
   const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("token"));
+
+  console.log('1111toekn',loggedIn);
 
   useEffect(() => {
     setLoggedIn(!!localStorage.getItem("token"));
   }, [user]);
+
+  useEffect(() => {
+    if (!token) return;
+    // api defaults header should already be set in main init; but set again to be safe
+    api.defaults.headers.common['Authorization'] = 'Bearer ' + token;
+    (async () => {
+      try {
+        const res = await api.get('/orders'); // returns all; we'll take first 5
+        const orders = res.data.data || [];
+        setRecentOrders(orders.slice(0,5));
+      } catch (e) {
+        console.error("Failed fetch orders", e);
+      }
+    })();
+  }, [token]);
 
   const itemsCount = items ? items.reduce((s, it) => s + (it.quantity || 1), 0) : 0;
 
@@ -81,6 +102,8 @@ export default function Header() {
               {itemsCount}
             </span>
           </Link>
+
+          {/* <Link to="/my-orders" >My Orders</Link> */}
         </div>
       </div>
     </header>

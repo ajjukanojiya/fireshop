@@ -21,7 +21,9 @@ export function UserProvider({ children }) {
       const res = await api.get("/auth/me"); // change endpoint if needed
       // if api returns user object as res.data or res.data.data adjust below
       const u = res?.data ?? res?.data?.data ?? null;
-      setUser(u);
+      console.log(u.user.phone,'jjjj')
+      console.log(u,'jjjjbbbbbbbbbbbbb')
+      setUser(u.user);
       setLoading(false);
       return u;
     } catch (e) {

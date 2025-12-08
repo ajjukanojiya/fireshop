@@ -10,12 +10,37 @@ export default function GuestCheckout(){
 
   const placeOrder = async () => {
     try {
-      // Build items array from cart. For now demo use single hard-coded item or integrate cart state
-      const items = [
-        // replace with real cart data
-        { product_id: 1, quantity: 1 }
-      ];
-  
+     let cart = [];
+    try {
+      const cartString = localStorage.getItem("cart");
+      cart = cartString ? JSON.parse(cartString) : [];
+    } catch (err) {
+      console.error("Invalid cart JSON", err);
+      cart = [];
+    }
+
+// map to backend format expected by Laravel
+const itemsdata = cart.map(item => {
+  // defensive checks
+  const productId = item.product?.id ?? item.product_id ?? null;
+  const qty = Number.isInteger(item.quantity) ? item.quantity : (item.qty ?? item.quantity ?? 1);
+
+  return {
+    product_id: productId !== null ? Number(productId) : null,
+    quantity: qty,
+    meta: item.meta ?? null, // agar zaroorat ho to bhejein
+  };
+});
+
+// filter-out invalid items
+const items = itemsdata.filter(i => Number.isFinite(i.product_id));
+
+console.log("Payload items:", items);
+      
+
+      console.log("Items from cart:", items);
+
+
       const payload = {
         name,
         phone,
@@ -27,7 +52,11 @@ export default function GuestCheckout(){
     //  alert('Order created: ' + (res.data.order_id || 'ok'));
       localStorage.removeItem('cart');     // persistent storage
     alert('Order created: ' + res.data.order_id);
-    navigate(`/order-success/${res.data.order_id || ''}`);
+    const guest_token = res.data.guest_token;
+if (guest_token) localStorage.setItem('guest_token', guest_token);
+const order = res.data.order;
+   // navigate(`/order-success/${res.data.order_id || ''}`);
+    navigate(`/order-success/${order.id}`, { state: { order } });
 
      // navigate('/');
     } catch (e) {

@@ -13,6 +13,41 @@ use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
+
+    public function createGuest(Request $r)
+    {
+        $r->validate([
+            'items' => 'required|array|min:1',
+            'total_amount' => 'required|numeric',
+            'guest_phone' => 'nullable|string',
+            'guest_token' => 'nullable|string'
+        ]);
+
+        $guestToken = $r->guest_token ?? Str::uuid()->toString();
+
+        $order = Order::create([
+            'user_id' => null,
+            'total_amount' => $r->total_amount,
+            'status' => $r->status ?? 'pending',
+            'guest_token' => $guestToken,
+            'guest_phone' => $r->guest_phone ?? null,
+        ]);
+
+        foreach ($r->items as $it) {
+            OrderItem::create([
+                'order_id' => $order->id,
+                'product_id' => $it['product_id'],
+                'quantity' => $it['quantity'] ?? 1,
+                'unit_price' => $it['unit_price'] ?? 0,
+            ]);
+        }
+
+        return response()->json([
+            'order' => $order->load('items.product'),
+            'guest_token' => $guestToken
+        ]);
+    }
+    
   public function index(Request $request)
   {
       $user = Auth::user();
@@ -61,6 +96,7 @@ class OrderController extends Controller
 public function myOrders()
 {
     $user = Auth::user();
+    //dd($user);
     if(!$user) return response()->json(['message'=>'Unauthenticated'], 401);
 
     $orders = Order::with('items.product')
@@ -70,7 +106,8 @@ public function myOrders()
 
     return response()->json([
         'message' => 'Orders fetched successfully',
-        'orders' => $orders
+        'orders' => $orders,
+        'users' => $user,
     ]);
 }
 

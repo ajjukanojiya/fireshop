@@ -11,6 +11,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 
+use Illuminate\Support\Str;
+// use Illuminate\Support\Facades\Schema;
+// use Illuminate\Support\Facades\DB;
+use App\Models\Product;
+// use App\Models\Order;
+// use App\Models\OrderItem;
+
 class CheckoutController extends Controller
 {
     public function checkout(Request $request)
@@ -23,6 +30,7 @@ class CheckoutController extends Controller
         // load user's cart items with product relation
         $cartItems = CartItem::where('user_id', $user->id)->with('product')->get();
 
+//dd($cartItems);
         if ($cartItems->isEmpty()) {
             return response()->json(['message' => 'Cart is empty'], 422);
         }
@@ -42,6 +50,7 @@ class CheckoutController extends Controller
                 }
                 $total += $ci->product->price * $ci->quantity;
             }
+          //  dd($cartItems);
 
             // create order
             $order = Order::create([
@@ -77,7 +86,7 @@ class CheckoutController extends Controller
         }, 5); // 5 retry attempts for deadlocks
     }
 
-    public function guestCheckout(Request $r)
+    public function guestCheckout_old(Request $r)
     {
         $r->validate([
             'name' => 'required|string',
@@ -175,4 +184,132 @@ class CheckoutController extends Controller
             'order_id' => $order->id
         ], 201);
     }
+
+
+    public function guestCheckout(Request $r)
+{
+   // return ('aajja');
+    // validate incoming payload (basic). You may extend as needed.
+    $r->validate([
+        'name' => 'required|string',
+        'phone' => 'required|string',
+        'address' => 'required|string',
+       // 'items' => 'required|array|min:1',
+        // 'items.*.product_id' => 'required|integer',
+        // 'items.*.quantity' => 'nullable|integer|min:1',
+      //  'guest_token' => 'nullable|string' // optional client-supplied token
+    ]);
+
+//    dd(111);
+   // return($r->phone);
+    $items = $r->items;
+    $guestPhone = $r->phone;
+    $guestToken = $r->guest_token ?? Str::uuid()->toString(); // generate if not provided
+
+    // 1) Check stock and compute total
+    $total = 0;
+    $productsToUpdate = []; // hold product models to decrement later
+    foreach ($items as $it) {
+        $pid = $it['product_id'] ?? null;
+        $qty = intval($it['quantity'] ?? 1);
+        if (!$pid) {
+            return response()->json(['message' => 'product_id missing in items'], 422);
+        }
+
+        $product = Product::lockForUpdate()->find($pid); // lock row to avoid race
+        if (!$product) {
+            return response()->json(['message' => "Product ID {$pid} not found"], 404);
+        }
+
+        if ($product->stock < $qty) {
+            return response()->json(['message' => "Insufficient stock for product: {$product->title}"], 422);
+        }
+
+        $price = $product->price ?? 0;
+        $total += ($price * $qty);
+
+        $productsToUpdate[] = [
+            'product' => $product,
+            'qty' => $qty
+        ];
+    }
+
+    // 2) Prepare order data (schema-flexible)
+    $orderData = [];
+    $orderData['user_id'] = null; // guest
+
+    // total column name: support both 'total' and 'total_amount'
+    if (Schema::hasColumn('orders', 'total_amount')) {
+        $orderData['total_amount'] = $total;
+    } elseif (Schema::hasColumn('orders', 'total')) {
+        $orderData['total'] = $total;
+    } else {
+        // fallback: set total_amount key (if DB different, this will fail—ensure one column exists)
+        $orderData['total_amount'] = $total;
+    }
+
+    if (Schema::hasColumn('orders', 'status')) $orderData['status'] = 'pending';
+    if (Schema::hasColumn('orders', 'guest_token')) $orderData['guest_token'] = $guestToken;
+    if (Schema::hasColumn('orders', 'guest_phone')) $orderData['guest_phone'] = $guestPhone;
+
+    // optional customer details on orders table (if exists)
+   // if (Schema::hasColumn('orders', 'name')) $orderData['name'] = $r->name;
+    if (Schema::hasColumn('orders', 'address')) $orderData['address'] = $r->address;
+
+    // 3) Create order inside DB transaction (safe)
+    try {
+        $order = DB::transaction(function () use ($orderData, $items, $productsToUpdate) {
+
+            $order = Order::create($orderData);
+
+            foreach ($items as $it) {
+                $pid = $it['product_id'];
+                $qty = intval($it['quantity'] ?? 1);
+                $product = Product::find($pid); // fresh model (we locked earlier)
+                if (!$product) throw new \Exception("Product {$pid} missing during order creation");
+
+                // prepare order item payload depending on schema
+                $orderItemData = [
+                    'order_id' => $order->id,
+                    'product_id' => $product->id,
+                    'quantity' => $qty,
+                ];
+                if (Schema::hasColumn('order_items', 'price')) {
+                    $orderItemData['price'] = $product->price;
+                }
+                if (Schema::hasColumn('order_items', 'unit_price')) {
+                    $orderItemData['unit_price'] = $product->price;
+                }
+                if (Schema::hasColumn('order_items', 'meta') && isset($it['meta'])) {
+                    $orderItemData['meta'] = $it['meta'];
+                }
+
+                OrderItem::create($orderItemData);
+            }
+
+            // decrement stock for each product (use decrements to be safe)
+            foreach ($productsToUpdate as $p) {
+                $p['product']->decrement('stock', $p['qty']);
+            }
+
+            return $order;
+        }, 5); // retry attempts for deadlocks
+
+    } catch (\Exception $e) {
+        // return a friendly error
+        return response()->json(['message' => 'Failed to create order', 'error' => $e->getMessage()], 500);
+    }
+
+    // 4) Load items for response if relationship exists
+    if (method_exists($order, 'load')) {
+        $order->load(['items.product']);
+    }
+
+    // 5) Return order id and guest_token (frontend should store guest_token locally)
+    return response()->json([
+        'message' => 'Guest order placed successfully',
+        'order' => $order,
+        'guest_token' => $guestToken
+    ], 201);
+}
 }
