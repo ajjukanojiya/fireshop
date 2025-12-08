@@ -72,7 +72,7 @@ export default function OrderConfirmation() {
 
       <div className="mt-6 flex gap-3">
         <button onClick={() => navigate("/")} className="bg-emerald-600 text-white px-4 py-2 rounded">Back to Home</button>
-        <button onClick={() => navigate("/orders")} className="bg-slate-900 text-white px-4 py-2 rounded">My Orders</button>
+        <button onClick={() => navigate("/my-orders")} className="bg-slate-900 text-white px-4 py-2 rounded">My Orders</button>
       </div>
     </div>
   );
