@@ -1,83 +1,179 @@
-import React, {useState} from "react";
+import React, { useState, useEffect } from "react";
 import api from "../api/api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import Header from "../components/Header";
+import { useToast } from "../contexts/ToastContext";
 
-export default function GuestCheckout(){
-  const [phone,setPhone] = useState('');
-  const [name,setName] = useState('');
-  const [address,setAddress] = useState('');
+export default function GuestCheckout() {
+  const [phone, setPhone] = useState('');
+  const [name, setName] = useState('');
+  const [address, setAddress] = useState('');
+  const [cartItems, setCartItems] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
-  const placeOrder = async () => {
-    try {
-     let cart = [];
+  useEffect(() => {
     try {
       const cartString = localStorage.getItem("cart");
-      cart = cartString ? JSON.parse(cartString) : [];
+      const cart = cartString ? JSON.parse(cartString) : [];
+      setCartItems(cart);
+
+      const t = cart.reduce((acc, item) => {
+        const price = item.product?.price || item.product_id || 0; // fallback if messy data
+        return acc + (price * (item.quantity || 1));
+      }, 0);
+      setTotal(t);
+
     } catch (err) {
       console.error("Invalid cart JSON", err);
-      cart = [];
+      setCartItems([]);
+    }
+  }, []);
+
+  const placeOrder = async () => {
+    if (!name || !phone || !address) {
+      addToast("Please fill in all details", "error");
+      return;
     }
 
-// map to backend format expected by Laravel
-const itemsdata = cart.map(item => {
-  // defensive checks
-  const productId = item.product?.id ?? item.product_id ?? null;
-  const qty = Number.isInteger(item.quantity) ? item.quantity : (item.qty ?? item.quantity ?? 1);
+    setLoading(true);
 
-  return {
-    product_id: productId !== null ? Number(productId) : null,
-    quantity: qty,
-    meta: item.meta ?? null, // agar zaroorat ho to bhejein
-  };
-});
-
-// filter-out invalid items
-const items = itemsdata.filter(i => Number.isFinite(i.product_id));
-
-console.log("Payload items:", items);
-      
-
-      console.log("Items from cart:", items);
-
+    try {
+      // map to backend format
+      const items = cartItems.map(item => ({
+        product_id: item.product?.id || item.product_id,
+        quantity: item.quantity || 1,
+        meta: item.meta || null
+      })).filter(i => i.product_id);
 
       const payload = {
         name,
         phone,
         address,
-        items
+        items,
+        payment_method: 'cod'
       };
-  
-      const res = await api.post('/checkout/guest', payload);
-    //  alert('Order created: ' + (res.data.order_id || 'ok'));
-      localStorage.removeItem('cart');     // persistent storage
-    alert('Order created: ' + res.data.order_id);
-    const guest_token = res.data.guest_token;
-if (guest_token) localStorage.setItem('guest_token', guest_token);
-const order = res.data.order;
-   // navigate(`/order-success/${res.data.order_id || ''}`);
-    navigate(`/order-success/${order.id}`, { state: { order } });
 
-     // navigate('/');
+      const res = await api.post('/checkout/guest', payload);
+
+      localStorage.removeItem('cart');
+      if (res.data.guest_token) {
+        localStorage.setItem('guest_token', res.data.guest_token);
+      }
+
+      addToast("Order placed successfully!", "success");
+
+      const order = res.data.order;
+      navigate(`/order-success/${order?.id || res.data.order_id}`);
+
     } catch (e) {
       console.error(e);
-      alert('Error: ' + (e?.response?.data?.message || e.message));
+      addToast(e?.response?.data?.message || e.message || "Failed to place order", "error");
+    } finally {
+      setLoading(false);
     }
   };
-  
+
+  if (cartItems.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Header />
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+          <h2 className="text-xl font-bold text-gray-900">Your cart is empty</h2>
+          <Link to="/" className="mt-4 text-red-600 font-medium hover:underline">Start Shopping</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white p-6 rounded-lg shadow">
-        <h3 className="text-lg font-semibold mb-2">Guest Checkout</h3>
-        <input placeholder="Full name" value={name} onChange={e=>setName(e.target.value)} className="w-full border rounded-md px-3 py-2 mb-2" />
-        <input placeholder="Phone" value={phone} onChange={e=>setPhone(e.target.value)} className="w-full border rounded-md px-3 py-2 mb-2" />
-        <textarea placeholder="Address" value={address} onChange={e=>setAddress(e.target.value)} className="w-full border rounded-md px-3 py-2 mb-3" rows="4" />
-        <button onClick={placeOrder} className="w-full bg-teal-500 text-white py-2 rounded-md">Place Order</button>
-      </div>
-      
-    </div>
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="flex items-center gap-2 mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Guest Checkout</h1>
+          <span className="bg-gray-200 text-gray-600 text-xs px-2 py-1 rounded font-medium">Quick Checkout</span>
+        </div>
 
-    
+        <div className="flex flex-col lg:flex-row gap-8">
+
+          {/* Left Column: Guest Details */}
+          <div className="flex-1 space-y-6">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <span className="bg-gray-900 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
+                Your Details
+              </h2>
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-gray-500 uppercase">Full Name</label>
+                  <input value={name} onChange={e => setName(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-red-500 focus:outline-none transition-all" placeholder="John Doe" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-gray-500 uppercase">Phone Number</label>
+                  <input value={phone} onChange={e => setPhone(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-red-500 focus:outline-none transition-all" placeholder="+91 98765 43210" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-gray-500 uppercase">Delivery Address</label>
+                  <textarea value={address} onChange={e => setAddress(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-red-500 focus:outline-none transition-all" rows="3" placeholder="Full address with pincode..." />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 opacity-60 pointer-events-none">
+              <h2 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <span className="bg-gray-300 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
+                Payment Method
+              </h2>
+              <p className="text-sm text-gray-500">Cash on Delivery (Standard for Guest Checkout)</p>
+            </div>
+          </div>
+
+          {/* Right Column: Order Summary */}
+          <div className="lg:w-96 flex-shrink-0">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-24">
+              <h3 className="font-bold text-gray-900 mb-4 text-lg">Order Summary</h3>
+
+              <div className="max-h-60 overflow-y-auto pr-2 space-y-3 mb-6 custom-scrollbar">
+                {cartItems.map((item, idx) => (
+                  <div key={idx} className="flex gap-3 text-sm">
+                    <div className="w-12 h-12 bg-gray-100 rounded border border-gray-200 flex-shrink-0">
+                      {item.product?.thumbnail_url && <img src={item.product?.thumbnail_url} className="w-full h-full object-cover rounded" />}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-800 line-clamp-1">{item.product?.title || 'Product'}</div>
+                      <div className="text-gray-500">Qty: {item.quantity}</div>
+                    </div>
+                    <div className="font-semibold">₹ {((item.product?.price || 0) * (item.quantity || 1)).toLocaleString()}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-2 mb-6 text-sm">
+                <div className="flex justify-between items-center pt-2 font-bold text-gray-900 text-lg border-t border-dashed">
+                  <span>Total Pay</span>
+                  <span>₹ {total.toLocaleString()}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={placeOrder}
+                disabled={loading}
+                className="w-full bg-red-600 hover:bg-red-700 text-white py-3.5 rounded-lg font-bold shadow-lg shadow-red-200 transition-all active:scale-[0.98] disabled:bg-gray-400 disabled:shadow-none"
+              >
+                {loading ? 'Processing...' : 'Place Guest Order'}
+              </button>
+
+              <div className="mt-4 text-center">
+                <Link to="/login" className="text-xs text-gray-500 hover:text-red-600 underline">Already have an account? Log in</Link>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
   );
 }

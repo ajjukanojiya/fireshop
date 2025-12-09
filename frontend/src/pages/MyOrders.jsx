@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 
 export default function MyOrders() {
-  // orders: null => not loaded yet, [] => loaded but empty, [..] => has data
   const [orders, setOrders] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,10 +14,8 @@ export default function MyOrders() {
       setLoading(true);
       setError(null);
       try {
-        // NOTE: your backend route earlier was /my-orders — keep it, or change to /orders if that's the real one.
         const res = await api.get("/my-orders");
-        console.log(res,'myorder');
-        // support both shapes: { orders: [...] } or { data: [...] }
+        // support both shapes
         const arr = res?.data?.orders ?? res?.data?.data ?? [];
         if (!mounted) return;
         setOrders(Array.isArray(arr) ? arr : []);
@@ -26,110 +23,163 @@ export default function MyOrders() {
         if (!mounted) return;
         const msg = e?.response?.data?.message || e.message || "Failed to load orders";
         setError(msg);
-        // unauthorized -> redirect to home/login
         if (e?.response?.status === 401 || e?.response?.status === 403) {
-          // delay a little so user sees message if needed
           setTimeout(() => navigate("/"), 800);
         }
-        setOrders([]); // treat as loaded but empty on error (prevents infinite loading)
+        setOrders([]);
       } finally {
-        if (!mounted) return;
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     })();
-
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, [navigate]);
 
-  // 1) Loading state -> show skeleton/loader
+  // --- Loading State ---
   if (loading) {
     return (
-      <div className="min-h-screen p-4">
-        <h2 className="text-2xl font-bold mb-4">My Orders</h2>
-        {/* simple skeleton */}
-        <div className="space-y-4">
-          <div className="bg-white p-4 rounded-md shadow animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-1/3 mb-3" />
-            <div className="h-3 bg-gray-200 rounded w-1/4 mb-2" />
-            <div className="h-3 bg-gray-200 rounded w-full" />
-          </div>
-          <div className="bg-white p-4 rounded-md shadow animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-1/3 mb-3" />
-            <div className="h-3 bg-gray-200 rounded w-1/4 mb-2" />
-            <div className="h-3 bg-gray-200 rounded w-full" />
+      <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">My Orders</h2>
+          <div className="space-y-6">
+            {[1, 2].map((i) => (
+              <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 animate-pulse">
+                <div className="flex justify-between mb-6">
+                  <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+                  <div className="h-6 bg-gray-200 rounded w-1/6"></div>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex gap-4">
+                    <div className="w-16 h-16 bg-gray-200 rounded-lg"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/4"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
     );
   }
 
-  // 2) Error (after loading)
+  // --- Error State ---
   if (error) {
-    return <div className="p-4 text-red-600">Error: {error}</div>;
-  }
-
-  // 3) Loaded but empty: show friendly message
-  if (!orders || orders.length === 0) {
-    return <div className="p-4">No orders yet.</div>;
-  }
-
-  // 4) show orders
-  return (
-    <div className="min-h-screen p-4">
-      <h2 className="text-2xl font-bold mb-4">My Orders</h2>
-      {orders.map((order) => (
-        <div key={order.id} className="bg-white p-4 rounded-md shadow mb-4">
-          <div className="flex justify-between mb-2">
-            <span>Order ID: {order.id}</span>
-            <span>
-              Total: $
-              {Number(order.total_amount ?? order.total ?? 0).toFixed(2)}
-            </span>
-          </div>
-          <div className="mb-2">Status: {order.status}</div>
-
-          <div>
-            {(order.items ?? []).map((item) => {
-              const prod = item.product ?? {};
-              // price fallback: product.price or item.unit_price or 0
-              const unitPrice =
-                Number(prod.price ?? item.unit_price ?? item.unitPrice ?? 0);
-              const qty = Number(item.quantity ?? 1);
-              return (
-                <div
-                  key={item.id}
-                  className="flex justify-between border-b py-1 items-center"
-                >
-                  <div className="flex items-center gap-3">
-                    {prod.thumbnail_url ? (
-                      <img
-                        src={prod.thumbnail_url}
-                        alt={prod.title || "product"}
-                        className="w-16 h-12 object-cover rounded"
-                      />
-                    ) : null}
-                    <div>
-                      <div className="font-medium">{prod.title ?? `Product #${item.product_id}`}</div>
-                      <div className="text-sm text-gray-600">Qty: {qty}</div>
-                    </div>
-                  </div>
-
-                  <div>${(unitPrice * qty).toFixed(2)}</div>
-                </div>
-              );
-            })}
-          </div>
-
-          <button
-            className="mt-2 bg-teal-500 text-white py-1 px-3 rounded-md"
-            onClick={() => navigate(`/order-success/${order.id}`)}
-          >
-            View Details
-          </button>
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="text-red-500 text-5xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-800">Oops! Something went wrong</h2>
+          <p className="text-gray-600 mt-2">{error}</p>
+          <button onClick={() => window.location.reload()} className="mt-4 px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700">Try Again</button>
         </div>
-      ))}
+      </div>
+    );
+  }
+
+  // --- Empty State ---
+  if (!orders || orders.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 text-center">
+        <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mb-6">
+          <svg className="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+          </svg>
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900">No orders yet</h2>
+        <p className="text-gray-500 mt-2 max-w-sm">Looks like you haven't placed any orders yet. Start exploring our collection!</p>
+        <button
+          onClick={() => navigate('/')}
+          className="mt-8 px-8 py-3 bg-blue-600 text-white rounded-xl font-semibold shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all hover:-translate-y-1"
+        >
+          Start Shopping
+        </button>
+      </div>
+    );
+  }
+
+  // --- Content State ---
+  return (
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-3xl font-bold text-gray-900">My Orders</h2>
+          <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">{orders.length} Orders</span>
+        </div>
+
+        <div className="space-y-6">
+          {orders.map((order) => {
+            // Determine status color
+            const status = order.status || 'Pending';
+            let statusColor = 'bg-yellow-100 text-yellow-800';
+            if (status.toLowerCase() === 'delivered') statusColor = 'bg-green-100 text-green-800';
+            else if (status.toLowerCase() === 'cancelled') statusColor = 'bg-red-100 text-red-800';
+            else if (status.toLowerCase() === 'shipped') statusColor = 'bg-blue-100 text-blue-800';
+
+            return (
+              <div key={order.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+                {/* Card Header */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 border-b border-gray-50 gap-4">
+                  <div>
+                    <div className="flex items-center gap-3 mb-1">
+                      <span className="font-bold text-gray-900">Order #{order.id}</span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wide ${statusColor}`}>
+                        {status}
+                      </span>
+                    </div>
+                    {/* Add date here if available in order object, e.g. <div className="text-sm text-gray-500">{new Date(order.created_at).toLocaleDateString()}</div> */}
+                  </div>
+                  <div className="text-left sm:text-right">
+                    <div className="text-sm text-gray-500">Total Amount</div>
+                    <div className="text-xl font-bold text-gray-900">₹ {Number(order.total_amount ?? order.total ?? 0).toLocaleString()}</div>
+                  </div>
+                </div>
+
+                {/* Items List */}
+                <div className="p-6 space-y-4">
+                  {(order.items ?? []).map((item) => {
+                    const prod = item.product ?? {};
+                    const unitPrice = Number(prod.price ?? item.unit_price ?? item.unitPrice ?? 0);
+                    const qty = Number(item.quantity ?? 1);
+
+                    return (
+                      <div key={item.id} className="flex items-start gap-4">
+                        <div className="w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                          {prod.thumbnail_url ? (
+                            <img src={prod.thumbnail_url} alt={prod.title} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">No Img</div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-900 truncate pr-4">{prod.title ?? `Product #${item.product_id}`}</h4>
+                          <p className="text-sm text-gray-500 mt-1">Qty: {qty}</p>
+                          <p className="text-sm font-semibold text-gray-900 mt-1 sm:hidden">₹ {(unitPrice * qty).toLocaleString()}</p>
+                        </div>
+                        <div className="hidden sm:block text-right">
+                          <p className="font-medium text-gray-900">₹ {(unitPrice * qty).toLocaleString()}</p>
+                          {qty > 1 && <p className="text-xs text-gray-500">₹ {unitPrice.toLocaleString()} each</p>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Card Footer: Actions */}
+                <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+                  <button
+                    onClick={() => navigate(`/order-success/${order.id}`, { state: { order } })}
+                    className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center gap-1 transition-colors"
+                  >
+                    View Details →
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

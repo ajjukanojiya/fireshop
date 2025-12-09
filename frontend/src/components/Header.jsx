@@ -17,35 +17,21 @@ export default function Header() {
 
   const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("token"));
 
-  console.log('1111toekn',loggedIn);
-
   useEffect(() => {
     setLoggedIn(!!localStorage.getItem("token"));
   }, [user]);
 
   useEffect(() => {
     if (!token) return;
-    // api defaults header should already be set in main init; but set again to be safe
     api.defaults.headers.common['Authorization'] = 'Bearer ' + token;
-    (async () => {
-      try {
-        const res = await api.get('/orders'); // returns all; we'll take first 5
-        const orders = res.data.data || [];
-        setRecentOrders(orders.slice(0,5));
-      } catch (e) {
-        console.error("Failed fetch orders", e);
-      }
-    })();
   }, [token]);
 
   const itemsCount = items ? items.reduce((s, it) => s + (it.quantity || 1), 0) : 0;
 
   const logout = async () => {
     try {
-      // optional: call backend logout if you have endpoint, e.g. await api.post('/auth/logout');
-    } catch (e) {
-      // ignore
-    }
+      // api logout if needed
+    } catch (e) { }
     localStorage.removeItem("token");
     delete api.defaults.headers.common["Authorization"];
     setUser(null);
@@ -55,56 +41,90 @@ export default function Header() {
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-30">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
 
         {/* Logo */}
-        <Link to="/" className="text-2xl font-bold text-slate-900">
+        <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent hover:opacity-90 transition-opacity">
           FireShop
         </Link>
 
-        {/* Search */}
-        <div className="flex-1 mx-6">
-          <div className="relative">
+        {/* Desktop Search - Hidden on mobile */}
+        <div className="hidden md:block flex-1 max-w-xl mx-6">
+          <div className="relative group">
             <input
               placeholder="Search fireworks, videos, packs..."
-              className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-300"
+              className="w-full border border-gray-200 bg-gray-50 rounded-full px-5 py-2.5 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all shadow-sm"
             />
-            <button className="absolute right-1 top-1/2 -translate-y-1/2 bg-teal-500 text-white px-3 py-1 rounded-md">
+            <button className="absolute right-1 top-1/2 -translate-y-1/2 bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded-full text-sm font-medium transition-colors">
               Search
             </button>
           </div>
         </div>
 
         {/* Right side */}
-        <div className="flex items-center gap-4">
-          {/* If logged in show greeting + dropdown placeholder */}
+        <div className="flex items-center gap-3 sm:gap-6">
+
+          {/* Mobile Search Icon (Placeholder if needed) */}
+
           {user ? (
-            <div className="flex items-center gap-3">
-              <div className="text-sm text-slate-700">Hello, <span className="font-medium">{user.name || user.phone}</span></div>
-              {/* simple dropdown placeholder — you can replace with real dropdown */}
-              <div className="relative">
-                <button className="text-sm px-3 py-1 border rounded">{user.name ? "Account" : "Profile"}</button>
-                {/* you can later add a small dropdown menu here */}
+            <div className="flex items-center gap-4">
+              {/* My Orders Link - Visible on Desktop */}
+              <Link
+                to="/my-orders"
+                className="hidden md:flex items-center gap-2 text-gray-600 hover:text-red-600 font-medium transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                </svg>
+                <span>Orders</span>
+              </Link>
+
+              <div className="flex items-center gap-3">
+                <div className="hidden sm:block text-right leading-tight">
+                  <div className="text-xs text-gray-500">Welcome back</div>
+                  <div className="text-sm font-bold text-gray-800">{user.name || "User"}</div>
+                </div>
+
+                <button
+                  onClick={logout}
+                  className="text-sm border border-red-200 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg font-medium transition-colors"
+                >
+                  Logout
+                </button>
               </div>
-              <button onClick={logout} className="text-sm text-red-600 font-medium">Logout</button>
             </div>
           ) : (
-            <Link to="/login" className="text-sm text-slate-700 font-medium">Sign in</Link>
+            <div className="flex items-center gap-3">
+              <Link to="/login" className="text-gray-700 hover:text-red-600 font-medium transition-colors">Sign in</Link>
+              <Link to="/signup" className="hidden sm:block bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">Register</Link>
+            </div>
           )}
 
           {/* Cart */}
           <Link
             to="/cart"
-            className="bg-slate-900 text-white px-3 py-2 rounded-md flex items-center"
+            className="relative p-2 text-gray-700 hover:text-red-600 transition-colors"
           >
-            Cart
-            <span className="ml-2 bg-white text-slate-900 px-2 py-0.5 rounded-full">
-              {itemsCount}
-            </span>
+            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            {itemsCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full border-2 border-white">
+                {itemsCount}
+              </span>
+            )}
           </Link>
-
-          {/* <Link to="/my-orders" >My Orders</Link> */}
         </div>
+      </div>
+
+      {/* Mobile Menu Bar (Bottom fixed or simple row below) - Optional but good for UX */}
+      {/* For now, relying on top header. If user wants strictly mobile friendly, we just made search hidden on mobile to save space. */}
+      {/* Let's add a small mobile search bar row if on mobile */}
+      <div className="md:hidden px-4 pb-3">
+        <input
+          placeholder="Search..."
+          className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
+        />
       </div>
     </header>
   );
