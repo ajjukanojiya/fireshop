@@ -79,6 +79,16 @@ export default function Header() {
                 <span>Orders</span>
               </Link>
 
+              {user.role === 'admin' && (
+                <Link
+                  to="/admin/dashboard"
+                  className="hidden md:flex items-center gap-2 text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100 hover:bg-red-100 font-bold text-sm transition-colors"
+                >
+                  <span className="text-lg">🛡️</span>
+                  <span>Admin</span>
+                </Link>
+              )}
+
               <div className="flex items-center gap-3">
                 <div className="hidden sm:block text-right leading-tight">
                   <div className="text-xs text-gray-500">Welcome back</div>

@@ -22,6 +22,10 @@ class CheckoutController extends Controller
 {
     public function checkout(Request $request)
     {
+        $request->validate([
+            'payment_method' => 'nullable|string|in:cod,upi,card'
+        ]);
+
         $user = Auth::user();
         if (!$user) {
             return response()->json(['message' => 'Unauthenticated'], 401);
@@ -36,7 +40,7 @@ class CheckoutController extends Controller
         }
 
         // transaction to keep things safe
-        return DB::transaction(function() use($user, $cartItems) {
+        return DB::transaction(function() use($user, $cartItems, $request) {
 
             // check stock and calculate total
             $total = 0;
@@ -53,11 +57,17 @@ class CheckoutController extends Controller
           //  dd($cartItems);
 
             // create order
-            $order = Order::create([
+            $orderData = [
                 'user_id' => $user->id,
                 'total_amount' => $total,
-                'status' => 'paid', // if you integrate payment gateway, adjust accordingly
-            ]);
+                'status' => 'pending', // default pending until payment or confirm
+            ];
+
+            if ($request->payment_method && Schema::hasColumn('orders', 'payment_method')) {
+                $orderData['payment_method'] = $request->payment_method;
+            }
+
+            $order = Order::create($orderData);
 
             // create order items, decrement stock
             foreach ($cartItems as $ci) {
@@ -253,9 +263,14 @@ class CheckoutController extends Controller
     if (Schema::hasColumn('orders', 'guest_phone')) $orderData['guest_phone'] = $guestPhone;
 
     // optional customer details on orders table (if exists)
-   // if (Schema::hasColumn('orders', 'name')) $orderData['name'] = $r->name;
+    // if (Schema::hasColumn('orders', 'name')) $orderData['name'] = $r->name;
     if (Schema::hasColumn('orders', 'address')) $orderData['address'] = $r->address;
 
+    // Payment Method (cod / upi / card)
+    if ($r->payment_method && Schema::hasColumn('orders', 'payment_method')) {
+        $orderData['payment_method'] = $r->payment_method;
+    }
+    
     // 3) Create order inside DB transaction (safe)
     try {
         $order = DB::transaction(function () use ($orderData, $items, $productsToUpdate) {

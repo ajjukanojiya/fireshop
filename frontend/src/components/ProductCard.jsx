@@ -8,6 +8,14 @@ export default function ProductCard({ product, onQuickView }) {
 
   const add = async (e) => {
     e.stopPropagation(); // prevent quickview trigger if clicked on button
+
+    // Check real stock
+    const currentStock = product.stock ?? 0;
+    if (currentStock === 0) {
+      addToast("This product is currently out of stock", "error");
+      return;
+    }
+
     const r = await addToCart(product, 1);
     if (r.ok) {
       addToast(`Added ${product.title} to cart`);
@@ -86,10 +94,20 @@ export default function ProductCard({ product, onQuickView }) {
 
           <button
             onClick={add}
-            className="w-full bg-gray-900 hover:bg-red-600 text-white py-2.5 rounded-lg font-semibold text-sm transition-all shadow hover:shadow-lg active:scale-[0.98] flex items-center justify-center gap-2"
+            disabled={stock === 0}
+            className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-all shadow hover:shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 ${stock === 0 ? 'bg-gray-200 text-gray-500 cursor-not-allowed shadow-none' : 'bg-gray-900 hover:bg-red-600 text-white'}`}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-            Add to Cart
+            {stock === 0 ? (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                Out of Stock
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                Add to Cart
+              </>
+            )}
           </button>
         </div>
       </div>

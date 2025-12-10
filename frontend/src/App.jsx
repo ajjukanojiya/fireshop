@@ -12,6 +12,11 @@ import OrderConfirmation from "./pages/OrderConfirmation";
 import OrderSuccess from "./pages/OrderSuccess";
 import OrderDetail from "./pages/OrderDetail";
 import Header from "./components/Header";
+import AdminLayout from "./components/AdminLayout";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminOrders from "./pages/admin/Orders";
+import AdminProducts from "./pages/admin/Products";
+import AdminCategories from "./pages/admin/Categories";
 import { ToastProvider } from "./contexts/ToastContext";
 
 
@@ -34,6 +39,14 @@ export default function App() {
         <Route path="/my-orders" element={<MyOrders />} />
         <Route path="/my-orders/:id" element={<OrderDetail />} />
 
+        {/* Admin Routes */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="orders" element={<AdminOrders />} />
+          <Route path="products" element={<AdminProducts />} />
+          <Route path="categories" element={<AdminCategories />} />
+        </Route>
       </Routes>
     </ToastProvider>
   );

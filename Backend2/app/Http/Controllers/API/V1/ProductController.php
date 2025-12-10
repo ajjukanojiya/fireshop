@@ -11,7 +11,7 @@ class ProductController extends Controller
   
     public function index() {
       try{
-        $products = Product::with('images','videos')->paginate(12);
+        $products = Product::with('images','videos','category')->paginate(12);
         return response()->json($products);
       }catch (\Exception $e) {
         // If an exception occurs, return a JSON response with the error message

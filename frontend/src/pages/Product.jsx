@@ -23,6 +23,10 @@ export default function Product() {
   }, [id]);
 
   const handleAddToCart = async () => {
+    if (p.stock === 0) {
+      addToast("This item is out of stock", "error");
+      return;
+    }
     setAdding(true);
     const res = await addToCart(p, 1);
     setAdding(false);
@@ -85,14 +89,15 @@ export default function Product() {
               <div className="flex flex-col sm:flex-row gap-4 mt-auto">
                 <button
                   onClick={handleAddToCart}
-                  disabled={adding}
-                  className="flex-1 bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl disabled:bg-gray-400"
+                  disabled={adding || (p.stock === 0)}
+                  className={`flex-1 px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl disabled:shadow-none ${p.stock === 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gray-900 hover:bg-gray-800 text-white disabled:bg-gray-400'}`}
                 >
-                  {adding ? 'Adding...' : 'Add to Cart'}
+                  {p.stock === 0 ? 'Out of Stock' : (adding ? 'Adding...' : 'Add to Cart')}
                 </button>
                 <button
                   onClick={handleBuyNow}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl shadow-red-200"
+                  disabled={p.stock === 0}
+                  className={`flex-1 px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl ${p.stock === 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none' : 'bg-red-600 hover:bg-red-700 text-white shadow-red-200'}`}
                 >
                   Buy Now
                 </button>

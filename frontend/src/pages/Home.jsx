@@ -12,13 +12,19 @@ export default function Home() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await api.get('/products');
-        const list = res.data.data || res.data;
+        const [prodRes, catRes] = await Promise.all([
+          api.get('/products'),
+          api.get('/categories')
+        ]);
+
+        const list = prodRes.data.data || prodRes.data;
         setProducts(list || []);
-        // derive category names if present
-        const cats = Array.from(new Set((list || []).map(p => p.category?.name || 'General')));
+
+        // Use fetched categories, fall back to derived if empty/fail (optional, but better to trust API)
+        const cats = catRes.data.map(c => c.name);
         setCategories(cats);
-      } catch (e) { console.error(e); }
+
+      } catch (e) { console.error("Failed to load data", e); }
     })();
   }, []);
 

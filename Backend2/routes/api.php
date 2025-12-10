@@ -25,6 +25,7 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
 Route::prefix('v1')->group(function(){
     Route::get('products',[ProductController::class,'index']);
     Route::get('products/{id}',[ProductController::class,'show']);
+    Route::get('categories', [\App\Http\Controllers\API\V1\CategoryController::class, 'index']);
     Route::post('checkout/guest', [CheckoutController::class,'guestCheckout']);
     // Route::get('cart',[CartController::class,'index']);
     // Route::post('cart/add',[CartController::class,'add']);
@@ -46,8 +47,20 @@ Route::prefix('v1')->group(function(){
     Route::post('auth/send-otp',[AuthController::class,'sendOtp']);
     Route::post('auth/verify-otp',[AuthController::class,'verifyOtp']);
     Route::post('auth/google',[GoogleAuthController::class,'loginWithGoogle']);
+    Route::get('/orders/{id}/guest', [OrderController::class, 'guestShow']);
   });
 
+
+// ADMIN ROUTES
+Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function() {
+    Route::get('/dashboard', [\App\Http\Controllers\API\V1\Admin\DashboardController::class, 'index']);
+    
+    Route::apiResource('products', \App\Http\Controllers\API\V1\Admin\ProductController::class);
+    Route::apiResource('categories', \App\Http\Controllers\API\V1\Admin\CategoryController::class);
+    Route::get('orders', [\App\Http\Controllers\API\V1\Admin\OrderController::class, 'index']);
+    Route::get('orders/{id}', [\App\Http\Controllers\API\V1\Admin\OrderController::class, 'show']);
+    Route::patch('orders/{id}/status', [\App\Http\Controllers\API\V1\Admin\OrderController::class, 'updateStatus']);
+});
 
  Route::prefix('v1')->middleware('auth:sanctum')->group(function(){
     Route::post('/checkout', [CheckoutController::class, 'checkout']);

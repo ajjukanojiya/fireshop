@@ -93,22 +93,43 @@ class OrderController extends Controller
     }
 
     // Get all orders of the logged-in user
-public function myOrders()
-{
-    $user = Auth::user();
-    //dd($user);
-    if(!$user) return response()->json(['message'=>'Unauthenticated'], 401);
+    public function myOrders()
+    {
+        $user = Auth::user();
+        //dd($user);
+        if(!$user) return response()->json(['message'=>'Unauthenticated'], 401);
 
-    $orders = Order::with('items.product')
-        ->where('user_id', $user->id)
-        ->orderBy('created_at', 'desc')
-        ->get();
+        $orders = Order::with('items.product')
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-    return response()->json([
-        'message' => 'Orders fetched successfully',
-        'orders' => $orders,
-        'users' => $user,
-    ]);
-}
+        return response()->json([
+            'message' => 'Orders fetched successfully',
+            'orders' => $orders,
+            'users' => $user,
+        ]);
+    }
+
+    // Secure guest order view
+    public function guestShow($id, Request $request)
+    {
+        $guestToken = $request->query('guest_token') ?? $request->guest_token;
+
+        if (!$guestToken) {
+            return response()->json(['message' => 'Guest token required'], 401);
+        }
+
+        $order = Order::with(['items.product'])
+            ->where('id', $id)
+            ->where('guest_token', $guestToken)
+            ->first();
+
+        if (!$order) {
+            return response()->json(['message' => 'Order not found or access denied'], 404);
+        }
+
+        return response()->json(['order' => $order]);
+    }
 
 }
