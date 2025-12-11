@@ -10,4 +10,10 @@ class Order extends Model
   protected $casts = ['address' => 'array'];
   public function items(){ return $this->hasMany(OrderItem::class); }
   public function user(){ return $this->belongsTo(User::class); }
+  
+  public function delivery()
+  {
+      // Get the latest delivery assignment
+      return $this->hasOne(Delivery::class)->latest();
+  }
 }

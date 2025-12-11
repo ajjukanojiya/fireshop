@@ -9,6 +9,11 @@ export default function OrderDetail() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Refund Modal State
+  const [showRefundModal, setShowRefundModal] = useState(false);
+  const [refundReason, setRefundReason] = useState("");
+  const [refundLoading, setRefundLoading] = useState(false);
+
   useEffect(() => {
     (async () => {
       try {
@@ -22,6 +27,22 @@ export default function OrderDetail() {
       }
     })();
   }, [id]);
+
+  const handleRefundSubmit = async () => {
+    if (!refundReason) return alert("Please enter a reason");
+    setRefundLoading(true);
+    try {
+      await api.post('/refunds', { order_id: order.id, reason: refundReason });
+      alert("Refund request submitted successfully!");
+      setShowRefundModal(false);
+      // Reload order to show updated status
+      window.location.reload();
+    } catch (e) {
+      alert(e?.response?.data?.message || "Failed to submit refund");
+    } finally {
+      setRefundLoading(false);
+    }
+  };
 
   if (loading) return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -54,6 +75,9 @@ export default function OrderDetail() {
   };
   const statusClass = statusColors[order.status?.toLowerCase()] || "bg-gray-100 text-gray-800";
 
+  // Check if already refunded (you might need to add 'refund' relationship to order response in backend if not already there, 
+  // currently we just check if the user sees 'delivered' they can click request. Ideally backend restricts duplicates)
+
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
       <Header />
@@ -73,8 +97,21 @@ export default function OrderDetail() {
                 Placed on {new Date(order.created_at).toLocaleDateString()} at {new Date(order.created_at).toLocaleTimeString()}
               </p>
             </div>
-            <div className={`px-4 py-1.5 rounded-full font-bold text-sm uppercase tracking-wide w-fit ${statusClass}`}>
-              {order.status || 'Processing'}
+
+            <div className="flex items-center gap-3">
+              <div className={`px-4 py-1.5 rounded-full font-bold text-sm uppercase tracking-wide w-fit ${statusClass}`}>
+                {order.status || 'Processing'}
+              </div>
+
+              {/* Refund Button: Only if delivered */}
+              {order.status === 'delivered' && (
+                <button
+                  onClick={() => setShowRefundModal(true)}
+                  className="bg-red-50 text-red-600 border border-red-200 px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-red-100 transition-colors"
+                >
+                  Request Refund
+                </button>
+              )}
             </div>
           </div>
 
@@ -137,6 +174,41 @@ export default function OrderDetail() {
         )}
 
       </div>
+
+      {/* Refund Modal */}
+      {showRefundModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl animate-fade-in">
+            <h2 className="text-xl font-bold mb-4">Request Refund</h2>
+            <p className="text-sm text-gray-600 mb-4">Please tell us why you want to return this order.</p>
+
+            <textarea
+              className="w-full border p-3 rounded-lg mb-4 focus:ring-2 focus:ring-red-500 outline-none"
+              rows="4"
+              placeholder="E.g. Item damaged, wrong size..."
+              value={refundReason}
+              onChange={(e) => setRefundReason(e.target.value)}
+            ></textarea>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowRefundModal(false)}
+                className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRefundSubmit}
+                disabled={refundLoading}
+                className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 disabled:bg-gray-300"
+              >
+                {refundLoading ? 'Submitting...' : 'Submit Request'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -33,19 +33,33 @@ export default function CheckoutPage() {
     phone: user?.phone || ''
   });
 
+  // Sync user data to address when user loads
+  React.useEffect(() => {
+    if (user) {
+      setAddress((prev) => ({
+        ...prev,
+        // prioritize user profile data if it exists, else keep what user typed or empty
+        name: prev.name || user.name || '',
+        phone: prev.phone || user.phone || '',
+        street: prev.street || user.street || '',
+        city: prev.city || user.city || '',
+        zip: prev.zip || user.zip || ''
+      }));
+    }
+  }, [user]);
+
   const handleAddressChange = (e) => {
     setAddress({ ...address, [e.target.name]: e.target.value });
   };
 
   const handleCheckout = async () => {
-    if (!address.name || !address.street || !address.phone) {
-      addToast("Please fill in all address details", "error");
+    // Validate all fields
+    if (!address.name || !address.street || !address.phone || !address.city || !address.zip) {
+      addToast("Please fill in all address details (City, Pincode, etc.)", "error");
       return;
     }
 
     if (paymentMethod === 'upi' && !upiId) {
-      // Just a validation simulation, typically we'd redirect to gateway
-      // For now, allow empty for "QR Code" simulation flow if we had one, but let's enforce VPA for "Enter ID"
       addToast("Please enter your UPI ID", "error");
       return;
     }
@@ -53,12 +67,14 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      // Ideally we send address and payment info here
-      const res = await api.post("/checkout", {
-        address,
+      // Send structure that matches backend expectation
+      const payload = {
+        address: address, // sending full object
         payment_method: paymentMethod,
-        payment_details: { upi_id: upiId }
-      });
+        payment_details: paymentMethod === 'upi' ? { upi_id: upiId } : {}
+      };
+
+      const res = await api.post("/checkout", payload);
 
       const order = res?.data?.order ?? res?.data;
       const orderId = order?.id ?? order?.order_id ?? null;

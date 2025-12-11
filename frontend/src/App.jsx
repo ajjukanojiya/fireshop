@@ -15,9 +15,12 @@ import Header from "./components/Header";
 import AdminLayout from "./components/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminOrders from "./pages/admin/Orders";
+import AdminDeliveryBoys from "./pages/admin/DeliveryBoys";
 import AdminProducts from "./pages/admin/Products";
 import AdminCategories from "./pages/admin/Categories";
 import { ToastProvider } from "./contexts/ToastContext";
+import TestPanel from "./pages/TestPanel";
+import DeliveryDashboard from "./pages/delivery/Dashboard";
 
 
 export default function App() {
@@ -38,12 +41,15 @@ export default function App() {
         <Route path="/order-success/:orderId" element={<OrderSuccess />} />
         <Route path="/my-orders" element={<MyOrders />} />
         <Route path="/my-orders/:id" element={<OrderDetail />} />
+        <Route path="/test-panel" element={<TestPanel />} />
+        <Route path="/delivery/dashboard" element={<DeliveryDashboard />} />
 
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="orders" element={<AdminOrders />} />
+          <Route path="delivery-boys" element={<AdminDeliveryBoys />} />
           <Route path="products" element={<AdminProducts />} />
           <Route path="categories" element={<AdminCategories />} />
         </Route>

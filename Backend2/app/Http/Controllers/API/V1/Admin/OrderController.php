@@ -11,7 +11,8 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Order::with('user')->latest();
+        // Eager load user and delivery info (including the delivery boy user details)
+        $query = Order::with(['user', 'delivery.deliveryBoy'])->latest();
         
         if ($request->has('status')) {
             $query->where('status', $request->status);

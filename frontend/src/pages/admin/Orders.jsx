@@ -42,8 +42,46 @@ export default function AdminOrders() {
         cancelled: 'bg-red-100 text-red-800',
     };
 
+    const [showAssignModal, setShowAssignModal] = useState(false);
+    const [selectedOrderForDelivery, setSelectedOrderForDelivery] = useState(null);
+    const [deliveryBoyId, setDeliveryBoyId] = useState("");
+    const [deliveryBoys, setDeliveryBoys] = useState([]);
+
+    const loadDeliveryBoys = async () => {
+        try {
+            const res = await api.get('/admin/users?role=delivery_boy');
+            setDeliveryBoys(res.data.data);
+        } catch (e) {
+            console.error("Failed to load delivery boys", e);
+        }
+    };
+
+    const openAssignModal = (orderId) => {
+        setSelectedOrderForDelivery(orderId);
+        setDeliveryBoyId(""); // Reset
+        setShowAssignModal(true);
+        if (deliveryBoys.length === 0) {
+            loadDeliveryBoys();
+        }
+    };
+
+    const handleAssignDelivery = async () => {
+        if (!deliveryBoyId) return alert("Please select a Delivery Boy");
+        try {
+            await api.post('/admin/deliveries/assign', {
+                order_id: selectedOrderForDelivery,
+                user_id: deliveryBoyId
+            });
+            alert("Order assigned successfully!");
+            setShowAssignModal(false);
+            loadOrders(filter);
+        } catch (e) {
+            alert(e?.response?.data?.message || "Failed to assign");
+        }
+    };
+
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                 <h2 className="text-xl font-bold text-gray-800">Orders Management</h2>
                 <select
@@ -66,8 +104,8 @@ export default function AdminOrders() {
                             <th className="px-6 py-4">Order ID</th>
                             <th className="px-6 py-4">Customer</th>
                             <th className="px-6 py-4">Amount</th>
-                            <th className="px-6 py-4">Payment</th>
                             <th className="px-6 py-4">Status</th>
+                            <th className="px-6 py-4">Delivery</th>
                             <th className="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
@@ -83,12 +121,58 @@ export default function AdminOrders() {
                                     <p className="font-medium text-gray-900">{order.user?.name || order.user?.phone || 'Guest'}</p>
                                     <p className="text-xs text-gray-500">{order.user?.email}</p>
                                 </td>
-                                <td className="px-6 py-4 font-medium">₹ {order.total_amount.toLocaleString()}</td>
-                                <td className="px-6 py-4 uppercase text-xs font-bold text-gray-500">{order.payment_id ? 'Paid' : 'COD'}</td>
+                                <td className="px-6 py-4 font-medium">
+                                    <div className="flex flex-col">
+                                        <span>₹ {order.total_amount.toLocaleString()}</span>
+                                        {/* COD Tracking */}
+                                        {order.payment_method === 'cod' && (
+                                            <div className="mt-1">
+                                                {order.delivery?.collected_amount ? (
+                                                    // Payment Collected
+                                                    Number(order.delivery.collected_amount) < Number(order.total_amount) ? (
+                                                        <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold border border-red-200 block w-fit">
+                                                            Partial: ₹{order.delivery.collected_amount}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-bold border border-green-200 block w-fit">
+                                                            Paid: ₹{order.delivery.collected_amount}
+                                                        </span>
+                                                    )
+                                                ) : (
+                                                    // Pending Collection
+                                                    <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-bold border border-gray-200 block w-fit">COD Pending</span>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </td>
                                 <td className="px-6 py-4">
                                     <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${statusColors[order.status] || 'bg-gray-100'}`}>
                                         {order.status}
                                     </span>
+                                </td>
+                                <td className="px-6 py-4">
+                                    {/* Check if delivery exists */}
+                                    {order.delivery && order.delivery.delivery_boy ? (
+                                        <div className="flex flex-col items-start gap-1">
+                                            <div className="flex items-center gap-1 text-xs font-bold text-green-700 bg-green-50 px-2 py-1 rounded border border-green-100">
+                                                <span>✓ {order.delivery.delivery_boy.name}</span>
+                                            </div>
+                                            <button
+                                                onClick={() => openAssignModal(order.id)}
+                                                className="text-[10px] text-gray-400 hover:text-blue-600 underline"
+                                            >
+                                                Re-assign
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => openAssignModal(order.id)}
+                                            className="text-xs bg-purple-50 text-purple-600 border border-purple-200 px-2 py-1 rounded hover:bg-purple-100"
+                                        >
+                                            Assign
+                                        </button>
+                                    )}
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                     <select
@@ -108,6 +192,34 @@ export default function AdminOrders() {
                     </tbody>
                 </table>
             </div>
+
+            {/* Assignment Modal */}
+            {showAssignModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl animate-fade-in">
+                        <h3 className="font-bold text-lg mb-4">Assign Delivery Boy</h3>
+                        <p className="text-xs text-gray-500 mb-2">Select a delivery person from the list.</p>
+
+                        <select
+                            className="w-full border p-2 rounded mb-4 focus:ring-2 focus:ring-purple-500 outline-none bg-white"
+                            value={deliveryBoyId}
+                            onChange={(e) => setDeliveryBoyId(e.target.value)}
+                        >
+                            <option value="">-- Select Delivery Boy --</option>
+                            {deliveryBoys.map(boy => (
+                                <option key={boy.id} value={boy.id}>
+                                    {boy.name} ({boy.phone})
+                                </option>
+                            ))}
+                        </select>
+
+                        <div className="flex justify-end gap-2">
+                            <button onClick={() => setShowAssignModal(false)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>
+                            <button onClick={handleAssignDelivery} className="px-3 py-1.5 bg-purple-600 text-white rounded hover:bg-purple-700">Assign</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

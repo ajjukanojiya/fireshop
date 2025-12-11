@@ -60,9 +60,30 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function
     Route::get('orders', [\App\Http\Controllers\API\V1\Admin\OrderController::class, 'index']);
     Route::get('orders/{id}', [\App\Http\Controllers\API\V1\Admin\OrderController::class, 'show']);
     Route::patch('orders/{id}/status', [\App\Http\Controllers\API\V1\Admin\OrderController::class, 'updateStatus']);
+
+    // Refund Routes (Admin)
+    Route::get('refunds', [\App\Http\Controllers\API\V1\Admin\RefundController::class, 'index']);
+    Route::get('refunds/{id}', [\App\Http\Controllers\API\V1\Admin\RefundController::class, 'show']);
+    Route::patch('refunds/{id}', [\App\Http\Controllers\API\V1\Admin\RefundController::class, 'update']);
+
+    // Delivery Routes (Admin)
+    Route::post('deliveries/assign', [\App\Http\Controllers\API\V1\Admin\DeliveryController::class, 'assign']);
+
+    // User Management (Admin) - e.g. Create Delivery Boy
+    Route::get('users', [\App\Http\Controllers\API\V1\Admin\UserController::class, 'index']);
+    Route::post('users', [\App\Http\Controllers\API\V1\Admin\UserController::class, 'store']);
+
+}); // End Admin Routes
+
+// Delivery Boy Routes (Protected)
+Route::prefix('v1/delivery')->middleware(['auth:sanctum'])->group(function() {
+    Route::get('my-deliveries', [\App\Http\Controllers\API\V1\Admin\DeliveryController::class, 'myDeliveries']);
+    Route::patch('update-status/{id}', [\App\Http\Controllers\API\V1\Admin\DeliveryController::class, 'updateStatus']);
 });
 
- Route::prefix('v1')->middleware('auth:sanctum')->group(function(){
+// User Refund Routes (Protected)
+Route::prefix('v1')->middleware('auth:sanctum')->group(function(){
+    Route::post('/refunds', [\App\Http\Controllers\API\V1\Admin\RefundController::class, 'store']);
     Route::post('/checkout', [CheckoutController::class, 'checkout']);
     // Orders: user orders list + single order view
     Route::post('orders/create',[OrderController::class,'create']);

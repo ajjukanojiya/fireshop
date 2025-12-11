@@ -91,7 +91,15 @@ export default function VerifyOtp() {
       try { await reload(); } catch (e) { }
       try { localStorage.removeItem("otp_phone"); } catch (e) { }
 
-      navigate("/");
+      // Redirect based on role
+      const userRole = res?.data?.user?.role || "user"; // Fallback
+      if (userRole === 'admin') {
+        navigate("/admin/dashboard");
+      } else if (userRole === 'delivery_boy') {
+        navigate("/delivery/dashboard");
+      } else {
+        navigate("/");
+      }
 
     } catch (error) {
       console.error("Verify error:", error);

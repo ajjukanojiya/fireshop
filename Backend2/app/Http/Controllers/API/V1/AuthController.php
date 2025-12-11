@@ -20,7 +20,7 @@ class AuthController extends Controller
         $key = "otp:login:{$phone}";
         $rateKey = "otp:rate:{$phone}";
         $count = Cache::get($rateKey,0);
-        if ($count >= 6) return response()->json(['message'=>'OTP rate limit reached'],429);
+        if ($count >= 50) return response()->json(['message'=>'OTP rate limit reached'],429);
 
         $otp = random_int(1000,9999);
         Cache::put($key, $otp, now()->addMinutes(3));

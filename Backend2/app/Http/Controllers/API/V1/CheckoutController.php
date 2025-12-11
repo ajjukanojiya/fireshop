@@ -23,7 +23,12 @@ class CheckoutController extends Controller
     public function checkout(Request $request)
     {
         $request->validate([
-            'payment_method' => 'nullable|string|in:cod,upi,card'
+            'payment_method' => 'nullable|string|in:cod,upi,card',
+            // Simple validation for address fields
+            'address' => 'required|array',
+            'address.street' => 'required|string',
+            'address.city' => 'required|string',
+            'address.zip' => 'required|string',
         ]);
 
         $user = Auth::user();
@@ -31,10 +36,19 @@ class CheckoutController extends Controller
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
+        // 1. Update User Profile with new address if provided
+        // This ensures next time they login, these fields are available.
+        $user->update([
+            'name' => $request->address['name'] ?? $user->name,
+            'phone' => $request->address['phone'] ?? $user->phone,
+            'street' => $request->address['street'] ?? $user->street,
+            'city' => $request->address['city'] ?? $user->city,
+            'zip' => $request->address['zip'] ?? $user->zip,
+        ]);
+
         // load user's cart items with product relation
         $cartItems = CartItem::where('user_id', $user->id)->with('product')->get();
 
-//dd($cartItems);
         if ($cartItems->isEmpty()) {
             return response()->json(['message' => 'Cart is empty'], 422);
         }
@@ -49,22 +63,43 @@ class CheckoutController extends Controller
                     throw new \Exception("Product not found for cart item {$ci->id}");
                 }
                 if ($ci->product->stock < $ci->quantity) {
-                    // you could return a user-friendly message instead of exception
                     throw new \Exception("Insufficient stock for product: {$ci->product->title}");
                 }
                 $total += $ci->product->price * $ci->quantity;
             }
-          //  dd($cartItems);
+
+            // Create formatted address string for the Order table
+            // (Assuming Order table has a single text 'address' column, or JSON)
+            // If it's a string column, we combine them.
+            $fullAddress = sprintf(
+                "%s, %s, %s, %s, Contact: %s",
+                $request->address['street'],
+                $request->address['city'],
+                $request->address['zip'],
+                $request->address['name'] ?? $user->name,
+                $request->address['phone'] ?? $user->phone
+            );
 
             // create order
             $orderData = [
                 'user_id' => $user->id,
                 'total_amount' => $total,
-                'status' => 'pending', // default pending until payment or confirm
+                'status' => 'pending', 
             ];
+
+            if (Schema::hasColumn('orders', 'address')) {
+                // If address is json, we can save the array directly, else string
+                $orderData['address'] = $fullAddress; 
+            }
 
             if ($request->payment_method && Schema::hasColumn('orders', 'payment_method')) {
                 $orderData['payment_method'] = $request->payment_method;
+            }
+            
+            // Save extra payment details (like UPI ID)
+            if ($request->payment_details && Schema::hasColumn('orders', 'payment_details')) {
+                // ensure it's cast to array/json
+                $orderData['payment_details'] = $request->payment_details;
             }
 
             $order = Order::create($orderData);
@@ -269,6 +304,11 @@ class CheckoutController extends Controller
     // Payment Method (cod / upi / card)
     if ($r->payment_method && Schema::hasColumn('orders', 'payment_method')) {
         $orderData['payment_method'] = $r->payment_method;
+    }
+    
+    // Payment Details (save JSON like upi_id etc)
+    if ($r->payment_details && Schema::hasColumn('orders', 'payment_details')) {
+         $orderData['payment_details'] = $r->payment_details;
     }
     
     // 3) Create order inside DB transaction (safe)
