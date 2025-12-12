@@ -57,6 +57,7 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function
     
     Route::apiResource('products', \App\Http\Controllers\API\V1\Admin\ProductController::class);
     Route::apiResource('categories', \App\Http\Controllers\API\V1\Admin\CategoryController::class);
+    Route::get('reports', [\App\Http\Controllers\API\V1\Admin\ReportController::class, 'index']);
     Route::get('orders', [\App\Http\Controllers\API\V1\Admin\OrderController::class, 'index']);
     Route::get('orders/{id}', [\App\Http\Controllers\API\V1\Admin\OrderController::class, 'show']);
     Route::patch('orders/{id}/status', [\App\Http\Controllers\API\V1\Admin\OrderController::class, 'updateStatus']);
@@ -73,6 +74,12 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function
     Route::get('users', [\App\Http\Controllers\API\V1\Admin\UserController::class, 'index']);
     Route::post('users', [\App\Http\Controllers\API\V1\Admin\UserController::class, 'store']);
 
+    // Payments & Wallet (Admin)
+    Route::get('payments/transactions', [\App\Http\Controllers\API\V1\Admin\PaymentController::class, 'index']);
+    Route::get('payments/wallet', [\App\Http\Controllers\API\V1\Admin\PaymentController::class, 'wallet']);
+    Route::post('payments/settle', [\App\Http\Controllers\API\V1\Admin\PaymentController::class, 'storeSettlement']);
+    Route::get('payments/settlements', [\App\Http\Controllers\API\V1\Admin\PaymentController::class, 'settlementHistory']);
+
 }); // End Admin Routes
 
 // Delivery Boy Routes (Protected)
@@ -83,7 +90,7 @@ Route::prefix('v1/delivery')->middleware(['auth:sanctum'])->group(function() {
 
 // User Refund Routes (Protected)
 Route::prefix('v1')->middleware('auth:sanctum')->group(function(){
-    Route::post('/refunds', [\App\Http\Controllers\API\V1\Admin\RefundController::class, 'store']);
+    Route::post('/refunds', [\App\Http\Controllers\API\V1\RefundController::class, 'store']); // Use Client Controller
     Route::post('/checkout', [CheckoutController::class, 'checkout']);
     // Orders: user orders list + single order view
     Route::post('orders/create',[OrderController::class,'create']);

@@ -125,25 +125,28 @@ export default function AdminOrders() {
                                     <div className="flex flex-col">
                                         <span>₹ {order.total_amount.toLocaleString()}</span>
                                         {/* COD Tracking */}
-                                        {order.payment_method === 'cod' && (
-                                            <div className="mt-1">
-                                                {order.delivery?.collected_amount ? (
-                                                    // Payment Collected
+                                        {/* Show Collection Info if ANY amount was collected (or if explicit COD) */}
+                                        {(order.delivery?.collected_amount !== undefined && order.delivery?.collected_amount !== null) || order.payment_method?.toLowerCase() === 'cod' ? (
+                                            <div className="mt-1 flex flex-col gap-1 text-[10px]">
+                                                {/* If delivery exists and something was collected */}
+                                                {order.delivery?.collected_amount !== undefined && order.delivery?.collected_amount !== null ? (
                                                     Number(order.delivery.collected_amount) < Number(order.total_amount) ? (
-                                                        <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold border border-red-200 block w-fit">
-                                                            Partial: ₹{order.delivery.collected_amount}
-                                                        </span>
+                                                        <>
+                                                            <span className="font-bold text-red-600 bg-red-50 border border-red-200 px-1 rounded w-fit">
+                                                                Pending: ₹{(Number(order.total_amount) - Number(order.delivery.collected_amount)).toLocaleString()}
+                                                            </span>
+                                                            <span className="text-gray-500">Collected: ₹{Number(order.delivery.collected_amount).toLocaleString()}</span>
+                                                        </>
                                                     ) : (
-                                                        <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-bold border border-green-200 block w-fit">
-                                                            Paid: ₹{order.delivery.collected_amount}
+                                                        <span className="font-bold text-green-700 bg-green-50 border border-green-200 px-1 rounded w-fit">
+                                                            Paid Full: ₹{Number(order.delivery.collected_amount).toLocaleString()}
                                                         </span>
                                                     )
                                                 ) : (
-                                                    // Pending Collection
-                                                    <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-bold border border-gray-200 block w-fit">COD Pending</span>
+                                                    <span className="text-gray-400 italic">COD Pending</span>
                                                 )}
                                             </div>
-                                        )}
+                                        ) : null}
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">

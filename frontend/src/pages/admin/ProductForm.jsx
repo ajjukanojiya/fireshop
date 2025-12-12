@@ -3,7 +3,7 @@ import api from '../../api/api';
 
 export default function AdminProductForm({ product, onSuccess, onCancel }) {
     const [formData, setFormData] = useState({
-        title: '', price: '', mrp: '', stock: '', category_id: '', description: ''
+        title: '', price: '', cost_price: '', mrp: '', stock: '', category_id: '', description: ''
     });
     const [files, setFiles] = useState({ thumbnail: null, images: [], videos: [] });
     const [categories, setCategories] = useState([]);
@@ -15,6 +15,7 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
             setFormData({
                 title: product.title,
                 price: product.price,
+                cost_price: product.cost_price || '',
                 mrp: product.mrp || '',
                 stock: product.stock,
                 category_id: product.category_id,
@@ -60,10 +61,14 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                     <input className="w-full border p-2 rounded" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} required />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                     <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase">Price</label>
+                        <label className="text-xs font-bold text-gray-500 uppercase">Price (Selling)</label>
                         <input type="number" className="w-full border p-2 rounded" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required />
+                    </div>
+                    <div>
+                        <label className="text-xs font-bold text-gray-500 uppercase">Cost Price (Purchase)</label>
+                        <input type="number" className="w-full border p-2 rounded" value={formData.cost_price} onChange={e => setFormData({ ...formData, cost_price: e.target.value })} placeholder="Optional" />
                     </div>
                     <div>
                         <label className="text-xs font-bold text-gray-500 uppercase">MRP</label>

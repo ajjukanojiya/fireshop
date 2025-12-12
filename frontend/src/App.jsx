@@ -18,6 +18,9 @@ import AdminOrders from "./pages/admin/Orders";
 import AdminDeliveryBoys from "./pages/admin/DeliveryBoys";
 import AdminProducts from "./pages/admin/Products";
 import AdminCategories from "./pages/admin/Categories";
+import AdminPayments from "./pages/admin/Payments";
+import AdminReports from "./pages/admin/Reports";
+import AdminRefunds from "./pages/admin/Refunds";
 import { ToastProvider } from "./contexts/ToastContext";
 import TestPanel from "./pages/TestPanel";
 import DeliveryDashboard from "./pages/delivery/Dashboard";
@@ -52,6 +55,9 @@ export default function App() {
           <Route path="delivery-boys" element={<AdminDeliveryBoys />} />
           <Route path="products" element={<AdminProducts />} />
           <Route path="categories" element={<AdminCategories />} />
+          <Route path="payments" element={<AdminPayments />} />
+          <Route path="reports" element={<AdminReports />} />
+          <Route path="refunds" element={<AdminRefunds />} />
         </Route>
       </Routes>
     </ToastProvider>

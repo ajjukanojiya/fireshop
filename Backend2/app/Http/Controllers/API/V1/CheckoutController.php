@@ -298,7 +298,7 @@ class CheckoutController extends Controller
     if (Schema::hasColumn('orders', 'guest_phone')) $orderData['guest_phone'] = $guestPhone;
 
     // optional customer details on orders table (if exists)
-    // if (Schema::hasColumn('orders', 'name')) $orderData['name'] = $r->name;
+    if (Schema::hasColumn('orders', 'name')) $orderData['name'] = $r->name;
     if (Schema::hasColumn('orders', 'address')) $orderData['address'] = $r->address;
 
     // Payment Method (cod / upi / card)

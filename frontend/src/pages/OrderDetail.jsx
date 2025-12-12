@@ -28,11 +28,26 @@ export default function OrderDetail() {
     })();
   }, [id]);
 
+  const [refundImages, setRefundImages] = useState([]);
+
   const handleRefundSubmit = async () => {
     if (!refundReason) return alert("Please enter a reason");
     setRefundLoading(true);
+
     try {
-      await api.post('/refunds', { order_id: order.id, reason: refundReason });
+      const formData = new FormData();
+      formData.append('order_id', order.id);
+      formData.append('reason', refundReason);
+      if (refundImages) {
+        Array.from(refundImages).forEach(file => {
+          formData.append('images[]', file);
+        });
+      }
+
+      await api.post('/refunds', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
       alert("Refund request submitted successfully!");
       setShowRefundModal(false);
       // Reload order to show updated status
@@ -81,6 +96,7 @@ export default function OrderDetail() {
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
       <Header />
+
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-6 flex items-center gap-2 text-sm text-gray-500">
           <Link to="/my-orders" className="hover:text-gray-900 transition-colors">My Orders</Link>
@@ -104,12 +120,12 @@ export default function OrderDetail() {
               </div>
 
               {/* Refund Button: Only if delivered */}
-              {order.status === 'delivered' && (
+              {order.status?.trim().toLowerCase() === 'delivered' && (
                 <button
                   onClick={() => setShowRefundModal(true)}
-                  className="bg-red-50 text-red-600 border border-red-200 px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-red-100 transition-colors"
+                  className="bg-red-600 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-lg hover:bg-red-700 transition-transform hover:scale-105 flex items-center gap-2"
                 >
-                  Request Refund
+                  <span>↩️</span> Request Refund
                 </button>
               )}
             </div>
@@ -184,11 +200,22 @@ export default function OrderDetail() {
 
             <textarea
               className="w-full border p-3 rounded-lg mb-4 focus:ring-2 focus:ring-red-500 outline-none"
-              rows="4"
+              rows="3"
               placeholder="E.g. Item damaged, wrong size..."
               value={refundReason}
               onChange={(e) => setRefundReason(e.target.value)}
             ></textarea>
+
+            <div className="mb-4">
+              <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Proof Images (Optional)</label>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={(e) => setRefundImages(e.target.files)}
+                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+              />
+            </div>
 
             <div className="flex gap-3 justify-end">
               <button
