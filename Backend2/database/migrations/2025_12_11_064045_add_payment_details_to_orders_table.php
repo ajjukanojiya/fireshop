@@ -11,6 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('orders')) {
+        return;
+    }
         Schema::table('orders', function (Blueprint $table) {
             // add payment_method if not exists (some old logic might have added it)
             if (!Schema::hasColumn('orders', 'payment_method')) {

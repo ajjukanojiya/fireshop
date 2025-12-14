@@ -65,7 +65,7 @@ class OrderController extends Controller
   {
       $user = Auth::user();
       $order = Order::where('id', $id)->where('user_id', $user->id)
-                    ->with(['items.product'])
+                    ->with(['items.product', 'refund'])
                     ->first();
 
       if (!$order) {
@@ -99,7 +99,7 @@ class OrderController extends Controller
         //dd($user);
         if(!$user) return response()->json(['message'=>'Unauthenticated'], 401);
 
-        $orders = Order::with('items.product')
+        $orders = Order::with(['items.product', 'refund'])
             ->where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();

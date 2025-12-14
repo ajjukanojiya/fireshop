@@ -40,7 +40,7 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
         try {
             if (product) {
                 payload.append('_method', 'PUT');
-                await api.post(`/ admin / products / ${product.id} `, payload, { headers: { 'Content-Type': 'multipart/form-data' } });
+                await api.post(`/admin/products/${product.id}`, payload, { headers: { 'Content-Type': 'multipart/form-data' } });
             } else {
                 await api.post('/admin/products', payload, { headers: { 'Content-Type': 'multipart/form-data' } });
             }

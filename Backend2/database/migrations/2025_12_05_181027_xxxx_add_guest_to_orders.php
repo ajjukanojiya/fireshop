@@ -5,6 +5,10 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
     public function up() {
+
+        if (!Schema::hasTable('orders')) {
+        return;
+    }
         Schema::table('orders', function (Blueprint $table) {
             // make user_id nullable
             if (Schema::hasColumn('orders','user_id')) {
@@ -20,6 +24,7 @@ return new class extends Migration {
             }
         });
     }
+    
 
     public function down() {
         Schema::table('orders', function (Blueprint $table) {

@@ -31,10 +31,15 @@ export default function AdminReports() {
             <h2 className="text-2xl font-bold text-gray-800">Operational Reports</h2>
 
             {/* 1. Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <p className="text-sm text-gray-500 uppercase font-semibold">Total Revenue</p>
+                    <p className="text-sm text-gray-500 uppercase font-semibold">Net Revenue</p>
                     <p className="text-3xl font-bold text-gray-900 mt-2">₹ {Number(stats.summary.revenue).toLocaleString()}</p>
+                    <p className="text-xs text-gray-400 mt-1">After Refunds</p>
+                </div>
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 bg-red-50">
+                    <p className="text-sm text-red-600 uppercase font-semibold">Total Refunded</p>
+                    <p className="text-3xl font-bold text-red-700 mt-2">₹ {Number(stats.summary.refunded || 0).toLocaleString()}</p>
                 </div>
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <p className="text-sm text-gray-500 uppercase font-semibold">Total Cost (Product Cost)</p>

@@ -52,7 +52,74 @@ export default function CheckoutPage() {
     setAddress({ ...address, [e.target.name]: e.target.value });
   };
 
+  const handleRazorpayPayment = async () => {
+    // Validate address
+    if (!address.name || !address.street || !address.phone || !address.city || !address.zip) {
+      addToast("Please fill in all address details", "error");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Step 1: Create Razorpay Order
+      const orderRes = await api.post("/create-razorpay-order", {
+        amount: total,
+      });
+
+      const { order_id, amount, currency, key } = orderRes.data;
+
+      // Step 2: Open Razorpay Checkout
+      const options = {
+        key: key,
+        amount: amount,
+        currency: currency,
+        name: "Fireshop",
+        description: "Order Payment",
+        order_id: order_id,
+        handler: async function (response) {
+          try {
+            // Step 3: Verify Payment
+            const verifyRes = await api.post("/verify-razorpay-payment", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              address: address,
+            });
+
+            const order = verifyRes?.data?.order;
+            await reload();
+            addToast("Payment successful!", "success");
+            navigate(`/order/${order.id}`);
+          } catch (e) {
+            addToast("Payment verification failed", "error");
+          }
+        },
+        prefill: {
+          name: address.name,
+          contact: address.phone,
+        },
+        theme: {
+          color: "#dc2626",
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (e) {
+      console.error("Razorpay error:", e);
+      addToast(e?.response?.data?.message || "Payment failed", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCheckout = async () => {
+    // If Razorpay, use separate flow
+    if (paymentMethod === 'razorpay') {
+      return handleRazorpayPayment();
+    }
+
     // Validate all fields
     if (!address.name || !address.street || !address.phone || !address.city || !address.zip) {
       addToast("Please fill in all address details (City, Pincode, etc.)", "error");
@@ -163,14 +230,24 @@ export default function CheckoutPage() {
 
               <div className="space-y-3">
 
+                {/* Razorpay Option */}
+                <div className={`border rounded-xl p-4 cursor-pointer transition-all ${paymentMethod === 'razorpay' ? 'border-red-500 bg-red-50/50 ring-1 ring-red-500' : 'border-gray-200 hover:border-gray-300'}`} onClick={() => setPaymentMethod('razorpay')}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${paymentMethod === 'razorpay' ? 'border-red-600' : 'border-gray-300'}`}>
+                      {paymentMethod === 'razorpay' && <div className="w-3 h-3 bg-red-600 rounded-full"></div>}
+                    </div>
+                    <span className="font-bold text-gray-800">Razorpay (UPI, Cards, Wallets)</span>
+                    <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase ml-auto">Recommended</span>
+                  </div>
+                </div>
+
                 {/* UPI Option */}
                 <div className={`border rounded-xl p-4 cursor-pointer transition-all ${paymentMethod === 'upi' ? 'border-red-500 bg-red-50/50 ring-1 ring-red-500' : 'border-gray-200 hover:border-gray-300'}`} onClick={() => setPaymentMethod('upi')}>
                   <div className="flex items-center gap-3">
                     <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${paymentMethod === 'upi' ? 'border-red-600' : 'border-gray-300'}`}>
                       {paymentMethod === 'upi' && <div className="w-3 h-3 bg-red-600 rounded-full"></div>}
                     </div>
-                    <span className="font-bold text-gray-800">UPI (GPay, PhonePe, Paytm)</span>
-                    <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase ml-auto">Recommended</span>
+                    <span className="font-bold text-gray-800">UPI (Manual)</span>
                   </div>
 
                   {paymentMethod === 'upi' && (

@@ -80,6 +80,17 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function
     Route::post('payments/settle', [\App\Http\Controllers\API\V1\Admin\PaymentController::class, 'storeSettlement']);
     Route::get('payments/settlements', [\App\Http\Controllers\API\V1\Admin\PaymentController::class, 'settlementHistory']);
 
+    // Online Payment Management (Admin) - Razorpay Transactions
+    Route::prefix('online-payments')->group(function() {
+        Route::get('/', [\App\Http\Controllers\API\V1\Admin\OnlinePaymentController::class, 'index']);
+        Route::get('/dashboard', [\App\Http\Controllers\API\V1\Admin\OnlinePaymentController::class, 'dashboard']);
+        Route::get('/analytics', [\App\Http\Controllers\API\V1\Admin\OnlinePaymentController::class, 'analytics']);
+        Route::get('/reconciliation-summary', [\App\Http\Controllers\API\V1\Admin\OnlinePaymentController::class, 'reconciliationSummary']);
+        Route::post('/reconcile', [\App\Http\Controllers\API\V1\Admin\OnlinePaymentController::class, 'reconcile']);
+        Route::get('/export', [\App\Http\Controllers\API\V1\Admin\OnlinePaymentController::class, 'export']);
+        Route::get('/{id}', [\App\Http\Controllers\API\V1\Admin\OnlinePaymentController::class, 'show']);
+    });
+
 }); // End Admin Routes
 
 // Delivery Boy Routes (Protected)
@@ -98,6 +109,18 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function(){
         Route::get('/orders/{id}', [OrderController::class, 'show']);
         Route::get('/order-success/{orderId}', [OrderController::class, 'orderSuccess']);
         Route::get('/my-orders', [OrderController::class, 'myOrders']);
+        Route::get('/wallet', [\App\Http\Controllers\API\V1\WalletController::class, 'index']);
         Route::post('orders/create-guest',[OrdersController::class,'createGuest']);
+        
+        // Razorpay Payment Routes
+        Route::post('/create-razorpay-order', [\App\Http\Controllers\API\V1\Payment\RazorpayController::class, 'createOrder']);
+        Route::post('/verify-razorpay-payment', [\App\Http\Controllers\API\V1\Payment\RazorpayController::class, 'verifyPayment']);
+        
+        // Address Book Routes
+        Route::get('/addresses', [\App\Http\Controllers\API\V1\AddressController::class, 'index']);
+        Route::post('/addresses', [\App\Http\Controllers\API\V1\AddressController::class, 'store']);
+        Route::put('/addresses/{id}', [\App\Http\Controllers\API\V1\AddressController::class, 'update']);
+        Route::delete('/addresses/{id}', [\App\Http\Controllers\API\V1\AddressController::class, 'destroy']);
+        Route::post('/addresses/{id}/set-default', [\App\Http\Controllers\API\V1\AddressController::class, 'setDefault']);
 
 });

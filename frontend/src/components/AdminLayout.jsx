@@ -38,7 +38,8 @@ export default function AdminLayout() {
         { label: 'Products', path: '/admin/products', icon: '🏷️' },
         { label: 'Categories', path: '/admin/categories', icon: '📂' },
         { label: 'Delivery Staff', path: '/admin/delivery-boys', icon: '🚚' },
-        { label: 'Payments', path: '/admin/payments', icon: '💰' },
+        { label: 'Payments (COD)', path: '/admin/payments', icon: '💰' },
+        { label: 'Online Payments', path: '/admin/online-payments', icon: '💳' },
         { label: 'Reports', path: '/admin/reports', icon: '📈' },
         { label: 'Refunds', path: '/admin/refunds', icon: '↩️' },
     ];

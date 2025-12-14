@@ -8,6 +8,8 @@ import GuestCheckout from "./pages/GuestCheckout";
 import CartPage from "./pages/Cart";
 import CheckoutPage from "./pages/CheckoutPage";
 import MyOrders from "./pages/MyOrders";
+import MyWallet from "./pages/MyWallet";
+import MyAddresses from './pages/MyAddresses';
 import OrderConfirmation from "./pages/OrderConfirmation";
 import OrderSuccess from "./pages/OrderSuccess";
 import OrderDetail from "./pages/OrderDetail";
@@ -19,6 +21,7 @@ import AdminDeliveryBoys from "./pages/admin/DeliveryBoys";
 import AdminProducts from "./pages/admin/Products";
 import AdminCategories from "./pages/admin/Categories";
 import AdminPayments from "./pages/admin/Payments";
+import AdminOnlinePayments from "./pages/admin/OnlinePayments";
 import AdminReports from "./pages/admin/Reports";
 import AdminRefunds from "./pages/admin/Refunds";
 import { ToastProvider } from "./contexts/ToastContext";
@@ -43,6 +46,8 @@ export default function App() {
         <Route path="/order/:orderId" element={<OrderConfirmation />} />
         <Route path="/order-success/:orderId" element={<OrderSuccess />} />
         <Route path="/my-orders" element={<MyOrders />} />
+        <Route path="/my-wallet" element={<MyWallet />} />
+        <Route path="/my-addresses" element={<MyAddresses />} />
         <Route path="/my-orders/:id" element={<OrderDetail />} />
         <Route path="/test-panel" element={<TestPanel />} />
         <Route path="/delivery/dashboard" element={<DeliveryDashboard />} />
@@ -56,6 +61,7 @@ export default function App() {
           <Route path="products" element={<AdminProducts />} />
           <Route path="categories" element={<AdminCategories />} />
           <Route path="payments" element={<AdminPayments />} />
+          <Route path="online-payments" element={<AdminOnlinePayments />} />
           <Route path="reports" element={<AdminReports />} />
           <Route path="refunds" element={<AdminRefunds />} />
         </Route>

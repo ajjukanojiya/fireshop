@@ -103,6 +103,11 @@ export function CartProvider({ children }) {
         await loadCart();
         return { ok:true, guest:false, item: res.data.item };
       } catch(err){
+        if (err.response && err.response.status === 401) {
+          // Token expired/invalid. Remove it and retry as guest.
+          localStorage.removeItem('token');
+          return addToCart(product, quantity, meta); 
+        }
         const message = err?.response?.data || err.message;
         return { ok:false, error: message };
       }
@@ -120,7 +125,14 @@ export function CartProvider({ children }) {
         await api.patch(`/cart/${itemId}`, { quantity, meta });
         await loadCart();
         return { ok:true };
-      } catch(e) { return { ok:false, error: e?.response?.data || e.message }; }
+      } catch(e) { 
+        if (e.response && e.response.status === 401) {
+          localStorage.removeItem('token');
+          await loadCart(); // switch to guest (likely empty or local)
+          return { ok:false, error: "Session expired" };
+        }
+        return { ok:false, error: e?.response?.data || e.message }; 
+      }
     }
   };
 
@@ -135,7 +147,14 @@ export function CartProvider({ children }) {
         await api.delete(`/cart/${itemId}`);
         await loadCart();
         return { ok:true };
-      } catch(e) { return { ok:false, error: e?.response?.data || e.message }; }
+      } catch(e) { 
+        if (e.response && e.response.status === 401) {
+          localStorage.removeItem('token');
+          await loadCart();
+          return { ok:false, error: "Session expired" };
+        }
+        return { ok:false, error: e?.response?.data || e.message }; 
+      }
     }
   };
 
@@ -149,7 +168,14 @@ export function CartProvider({ children }) {
         await api.post('/cart/clear');
         await loadCart();
         return { ok:true };
-      } catch(e){ return { ok:false, error: e?.response?.data || e.message }; }
+      } catch(e){ 
+        if (e.response && e.response.status === 401) {
+          localStorage.removeItem('token');
+          await loadCart();
+          return { ok:false, error: "Session expired" };
+        }
+        return { ok:false, error: e?.response?.data || e.message }; 
+      }
     }
   };
 

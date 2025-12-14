@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\OrderItem;
+use App\Models\Refund;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -15,11 +16,18 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         // 1. Total Profit Logic
-        // Revenue = Total Sales
+        // Gross Revenue = Total Sales
         // Cost = Sum(qty * cost_price)
         // Profit = Revenue - Cost
 
-        $totalRevenue = Order::where('status', '!=', 'cancelled')->sum('total_amount');
+        $grossRevenue = Order::where('status', '!=', 'cancelled')->sum('total_amount');
+        
+        // Refunds (Approved)
+        $totalRefunded = Refund::where('status', 'approved')->sum('amount');
+
+        // Net Revenue
+        $netRevenue = $grossRevenue - $totalRefunded;
+
         
         // Calculate total cost (only for non-cancelled orders)
         // We join order_items -> products to get cost_price
@@ -30,7 +38,7 @@ class ReportController extends Controller
             ->select(DB::raw('SUM(order_items.quantity * COALESCE(products.cost_price, 0)) as total_cost'))
             ->value('total_cost');
 
-        $totalProfit = $totalRevenue - $totalCost;
+        $totalProfit = $netRevenue - $totalCost;
 
         // 2. Sales Trend (Last 30 Days)
         $salesTrend = Order::select(
@@ -64,7 +72,9 @@ class ReportController extends Controller
 
         return response()->json([
             'summary' => [
-                'revenue' => $totalRevenue,
+                'revenue' => $netRevenue, // Now this is Net Revenue
+                'gross_revenue' => $grossRevenue,
+                'refunded' => $totalRefunded,
                 'cost' => $totalCost,
                 'profit' => $totalProfit
             ],

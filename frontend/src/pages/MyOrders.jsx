@@ -178,8 +178,34 @@ export default function MyOrders() {
                     })}
                   </div>
 
-                  {/* Card Footer: Actions */}
-                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+                    {/* Refund Logic */}
+                    {status.toLowerCase() === 'delivered' && !order.refund && (
+                      <button
+                        onClick={() => navigate(`/my-orders/${order.id}?action=refund`)}
+                        className="text-red-600 hover:text-red-800 font-medium text-sm flex items-center gap-1 transition-colors border border-red-200 px-3 py-1 rounded bg-red-50 hover:bg-red-100"
+                      >
+                        ↩️ Request Refund
+                      </button>
+                    )}
+
+                    {order.refund && (
+                      <span className={`px-3 py-1 rounded text-sm font-medium border ${order.refund.status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' :
+                          order.refund.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' :
+                            'bg-yellow-50 text-yellow-700 border-yellow-200'
+                        }`}>
+                        {order.refund.status === 'approved' ? 'Refunded' :
+                          order.refund.status === 'rejected' ? 'Refund Rejected' :
+                            'Refund Pending'}
+                      </span>
+                    )}
+
+                    {/* Fallback for manually updated status without refund record */}
+                    {status.toLowerCase() === 'refunded' && !order.refund && (
+                      <span className="px-3 py-1 rounded text-sm font-medium bg-green-50 text-green-700 border border-green-200">
+                        Refunded
+                      </span>
+                    )}
                     <button
                       onClick={() => navigate(`/order-success/${order.id}`, { state: { order } })}
                       className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center gap-1 transition-colors"

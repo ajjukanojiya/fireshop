@@ -16,4 +16,19 @@ class Order extends Model
       // Get the latest delivery assignment
       return $this->hasOne(Delivery::class)->latest();
   }
+
+  public function refund()
+  {
+      return $this->hasOne(Refund::class);
+  }
+
+  public function paymentTransactions()
+  {
+      return $this->hasMany(PaymentTransaction::class);
+  }
+
+  public function latestPaymentTransaction()
+  {
+      return $this->hasOne(PaymentTransaction::class)->latest();
+  }
 }

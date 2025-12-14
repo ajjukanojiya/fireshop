@@ -79,6 +79,14 @@ export default function Header() {
                 <span>Orders</span>
               </Link>
 
+              <Link
+                to="/my-wallet"
+                className="hidden md:flex items-center gap-2 text-gray-600 hover:text-red-600 font-medium transition-colors"
+                title="My Wallet"
+              >
+                <span className="text-xl">💰</span>
+              </Link>
+
               {user.role === 'admin' && (
                 <Link
                   to="/admin/dashboard"

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\PaymentTransaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
@@ -111,6 +112,7 @@ class CheckoutController extends Controller
                     'product_id' => $ci->product_id,
                     'quantity' => $ci->quantity,
                     'price' => $ci->product->price,
+                    'unit_price' => $ci->product->price, // Add this field
                     'meta' => $ci->meta ?? null,
                 ]);
 
@@ -118,11 +120,50 @@ class CheckoutController extends Controller
                 $ci->product->decrement('stock', $ci->quantity);
             }
 
+            // **NEW: Log Payment Transaction for Manual Payments**
+            if (in_array($request->payment_method, ['upi', 'card', 'cod'])) {
+                PaymentTransaction::create([
+                    'order_id' => $order->id,
+                    'user_id' => $user->id,
+                    'payment_gateway' => 'manual',
+                    'payment_id' => 'manual_' . $order->id . '_' . time(),
+                    'amount' => $total,
+                    'gateway_fee' => 0, // No gateway fee for manual payments
+                    'gst_on_fee' => 0,
+                    'net_amount' => $total,
+                    'currency' => 'INR',
+                    'status' => $request->payment_method === 'cod' ? 'pending' : 'success',
+                    'payment_method' => $request->payment_method,
+                    'gateway_response' => [
+                        'type' => 'manual',
+                        'upi_id' => $request->payment_details['upi_id'] ?? null,
+                        'payment_method' => $request->payment_method
+                    ],
+                    'customer_email' => $user->email,
+                    'customer_phone' => $user->phone,
+                    'notes' => 'Manual payment - ' . strtoupper($request->payment_method)
+                ]);
+            }
+
             // clear user's cart
             CartItem::where('user_id', $user->id)->delete();
 
             // eager load items + product for response
             $order->load(['items.product']);
+
+            // SMS Notifications disabled due to Twilio compatibility issues
+            // To enable: Configure Twilio credentials in .env and uncomment below code
+            /*
+            try {
+                if ($user->phone && config('services.twilio.sid') && config('services.twilio.token')) {
+                    $message = "Order Confirmed! Order #{$order->id} placed successfully. Total: Rs.{$order->total_amount}. Thank you for shopping with Fireshop!";
+                    $twilio = new \Twilio\Rest\Client(config('services.twilio.sid'), config('services.twilio.token'));
+                    $twilio->messages->create($user->phone, ['from' => config('services.twilio.from'), 'body' => $message]);
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Order SMS Failed: ' . $e->getMessage());
+            }
+            */
 
             return response()->json([
                 'message' => 'Order placed successfully',
@@ -345,6 +386,31 @@ class CheckoutController extends Controller
             // decrement stock for each product (use decrements to be safe)
             foreach ($productsToUpdate as $p) {
                 $p['product']->decrement('stock', $p['qty']);
+            }
+
+            // **NEW: Log Payment Transaction for Guest Payments**
+            if (isset($r->payment_method) && in_array($r->payment_method, ['upi', 'card', 'cod'])) {
+                PaymentTransaction::create([
+                    'order_id' => $order->id,
+                    'user_id' => null, // Guest user
+                    'payment_gateway' => 'manual',
+                    'payment_id' => 'guest_' . $order->id . '_' . time(),
+                    'amount' => $total,
+                    'gateway_fee' => 0,
+                    'gst_on_fee' => 0,
+                    'net_amount' => $total,
+                    'currency' => 'INR',
+                    'status' => $r->payment_method === 'cod' ? 'pending' : 'success',
+                    'payment_method' => $r->payment_method,
+                    'gateway_response' => [
+                        'type' => 'manual_guest',
+                        'upi_id' => $r->payment_details['upi_id'] ?? null,
+                        'payment_method' => $r->payment_method
+                    ],
+                    'customer_email' => null,
+                    'customer_phone' => $guestPhone,
+                    'notes' => 'Guest payment - ' . strtoupper($r->payment_method)
+                ]);
             }
 
             return $order;

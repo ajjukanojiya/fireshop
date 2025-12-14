@@ -7,7 +7,10 @@ use Illuminate\Http\Request;
 
 use App\Models\Refund;
 use App\Models\Order;
+use App\Models\User;
+use App\Models\WalletTransaction;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class RefundController extends Controller
 {
@@ -63,11 +66,48 @@ class RefundController extends Controller
             'admin_note' => 'nullable|string'
         ]);
 
-        $refund = Refund::findOrFail($id);
-        $refund->update([
-            'status' => $request->status,
-            'admin_note' => $request->admin_note
-        ]);
+        $refund = Refund::with('order')->findOrFail($id);
+        
+        DB::transaction(function() use ($refund, $request) {
+            $refund->update([
+                'status' => $request->status,
+                'admin_note' => $request->admin_note
+            ]);
+
+            // If approved, credit to wallet
+            if ($request->status === 'approved') {
+                // Update Order Status
+                $refund->order->update(['status' => 'refunded']);
+
+                $user = User::find($refund->order->user_id);
+                if ($user) {
+                    $amount = $refund->amount;
+                    $user->wallet_balance += $amount;
+                    $user->save();
+
+                    WalletTransaction::create([
+                        'user_id' => $user->id,
+                        'amount' => $amount,
+                        'type' => 'refund',
+                        'description' => 'Refund for Order #' . $refund->order_id
+                    ]);
+
+                    // SMS Notifications disabled due to Twilio compatibility issues
+                    // To enable: Configure Twilio credentials in .env and uncomment below code
+                    /*
+                    try {
+                        if ($user && $user->phone && config('services.twilio.sid') && config('services.twilio.token')) {
+                            $message = "Refund Approved! Rs.{$refund->amount} has been credited to your Fireshop Wallet for Order #{$refund->order_id}. Use it for your next purchase!";
+                            $twilio = new \Twilio\Rest\Client(config('services.twilio.sid'), config('services.twilio.token'));
+                            $twilio->messages->create($user->phone, ['from' => config('services.twilio.from'), 'body' => $message]);
+                        }
+                    } catch (\Exception $e) {
+                         \Illuminate\Support\Facades\Log::error('Refund SMS Failed: ' . $e->getMessage());
+                    }
+                    */
+                }
+            }
+        });
 
         return response()->json(['message' => 'Refund status updated', 'data' => $refund], 200);
     }

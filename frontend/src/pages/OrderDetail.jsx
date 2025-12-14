@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom";
 import api from "../api/api";
 import Header from "../components/Header";
 
 export default function OrderDetail() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams(); // Add this
   const [order, setOrder] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,13 +21,18 @@ export default function OrderDetail() {
         const res = await api.get(`/orders/${id}`);
         // Support wrapped or unwrapped response
         setOrder(res.data.data || res.data.order || res.data);
+
+        // Auto-open refund modal if requested via URL
+        if (searchParams.get('action') === 'refund') {
+          setShowRefundModal(true);
+        }
       } catch (e) {
         setError(e?.response?.data?.message || e.message);
       } finally {
         setLoading(false);
       }
     })();
-  }, [id]);
+  }, [id, searchParams]);
 
   const [refundImages, setRefundImages] = useState([]);
 
@@ -119,14 +125,32 @@ export default function OrderDetail() {
                 {order.status || 'Processing'}
               </div>
 
-              {/* Refund Button: Only if delivered */}
-              {order.status?.trim().toLowerCase() === 'delivered' && (
+              {/* Refund Logic */}
+              {order.status?.trim().toLowerCase() === 'delivered' && !order.refund && (
                 <button
                   onClick={() => setShowRefundModal(true)}
                   className="bg-red-600 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-lg hover:bg-red-700 transition-transform hover:scale-105 flex items-center gap-2"
                 >
                   <span>↩️</span> Request Refund
                 </button>
+              )}
+
+              {order.refund && (
+                <div className={`px-4 py-1.5 rounded-full font-bold text-sm uppercase tracking-wide border ${order.refund.status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' :
+                    order.refund.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' :
+                      'bg-yellow-50 text-yellow-700 border-yellow-200'
+                  }`}>
+                  {order.refund.status === 'approved' ? 'Refunded' :
+                    order.refund.status === 'rejected' ? 'Refund Rejected' :
+                      'Refund Pending'}
+                </div>
+              )}
+
+              {/* Fallback for manually updated status without refund record */}
+              {order.status?.trim().toLowerCase() === 'refunded' && !order.refund && (
+                <div className="px-4 py-1.5 rounded-full font-bold text-sm uppercase tracking-wide bg-green-50 text-green-700 border border-green-200">
+                  Refunded
+                </div>
               )}
             </div>
           </div>
