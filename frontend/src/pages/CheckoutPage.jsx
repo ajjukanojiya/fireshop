@@ -16,6 +16,11 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState('upi'); // upi, card, cod
   const [upiId, setUpiId] = useState('');
 
+  // Saved Addresses
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [showNewAddressForm, setShowNewAddressForm] = useState(false);
+
   // Redirect guests to Guest Checkout
   React.useEffect(() => {
     const token = localStorage.getItem('token');
@@ -23,6 +28,63 @@ export default function CheckoutPage() {
       navigate('/guest-checkout');
     }
   }, [user, userLoading, navigate]);
+
+  // Load saved addresses
+  React.useEffect(() => {
+    if (user) {
+      loadSavedAddresses();
+    }
+  }, [user]);
+
+  const loadSavedAddresses = async () => {
+    try {
+      const res = await api.get('/addresses');
+      // Fix: API returns { data: [...] }
+      const addressList = res.data.data || [];
+      setSavedAddresses(addressList);
+      // Auto-select default address if exists
+      const defaultAddr = addressList.find(a => a.is_default);
+      if (defaultAddr) {
+        setSelectedAddressId(defaultAddr.id);
+        setAddress({
+          name: defaultAddr.name,
+          street: defaultAddr.street,
+          city: defaultAddr.city,
+          zip: defaultAddr.zip,
+          phone: defaultAddr.phone
+        });
+      } else if (addressList.length > 0) {
+        // Select first address if no default
+        const firstAddr = addressList[0];
+        setSelectedAddressId(firstAddr.id);
+        setAddress({
+          name: firstAddr.name,
+          street: firstAddr.street,
+          city: firstAddr.city,
+          zip: firstAddr.zip,
+          phone: firstAddr.phone
+        });
+      } else {
+        // No saved addresses, show form
+        setShowNewAddressForm(true);
+      }
+    } catch (error) {
+      console.error('Failed to load addresses', error);
+      setShowNewAddressForm(true);
+    }
+  };
+
+  const handleAddressSelect = (addr) => {
+    setSelectedAddressId(addr.id);
+    setAddress({
+      name: addr.name,
+      street: addr.street,
+      city: addr.city,
+      zip: addr.zip,
+      phone: addr.phone
+    });
+    setShowNewAddressForm(false);
+  };
 
   // Address State
   const [address, setAddress] = useState({
@@ -92,7 +154,9 @@ export default function CheckoutPage() {
             addToast("Payment successful!", "success");
             navigate(`/order/${order.id}`);
           } catch (e) {
-            addToast("Payment verification failed", "error");
+            console.error("Verification error:", e);
+            const msg = e.response?.data?.message || "Payment verification failed";
+            addToast(msg, "error");
           }
         },
         prefill: {
@@ -126,9 +190,17 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (paymentMethod === 'upi' && !upiId) {
-      addToast("Please enter your UPI ID", "error");
-      return;
+    if (paymentMethod === 'upi') {
+      if (!upiId) {
+        addToast("Please enter your UPI ID", "error");
+        return;
+      }
+      // Basic strict regex for UPI: accepted chars @ accepted chars
+      const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
+      if (!upiRegex.test(upiId)) {
+        addToast("Invalid UPI ID format. Example: user@oksbi", "error");
+        return;
+      }
     }
 
     setLoading(true);
@@ -198,6 +270,41 @@ export default function CheckoutPage() {
                 Shipping Address
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                {/* Saved Addresses Selection */}
+                {savedAddresses.length > 0 && (
+                  <div className="md:col-span-2 mb-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-xs font-medium text-gray-500 uppercase">Select Saved Address</label>
+                      <button
+                        onClick={() => {
+                          setSelectedAddressId(null);
+                          setAddress({ name: '', street: '', city: '', zip: '', phone: '' });
+                        }}
+                        className="text-xs text-red-600 font-bold hover:underline"
+                      >
+                        + Add New Address
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                      {savedAddresses.map(addr => (
+                        <div
+                          key={addr.id}
+                          onClick={() => handleAddressSelect(addr)}
+                          className={`border rounded-lg p-3 cursor-pointer transition-all ${selectedAddressId === addr.id ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'}`}
+                        >
+                          <div className="flex justify-between">
+                            <span className="font-bold text-sm text-gray-800">{addr.label}</span>
+                            {selectedAddressId === addr.id && <span className="text-red-600 text-xs font-bold">✓ Selected</span>}
+                          </div>
+                          <p className="text-xs text-gray-600 mt-1 line-clamp-1">{addr.name}, {addr.phone}</p>
+                          <p className="text-xs text-gray-500 line-clamp-1">{addr.street}, {addr.city}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="space-y-1">
                   <label className="text-xs font-medium text-gray-500 uppercase">Full Name</label>
                   <input name="name" value={address.name} onChange={handleAddressChange} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-red-500 focus:outline-none transition-all" placeholder="John Doe" />
@@ -239,6 +346,16 @@ export default function CheckoutPage() {
                     <span className="font-bold text-gray-800">Razorpay (UPI, Cards, Wallets)</span>
                     <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase ml-auto">Recommended</span>
                   </div>
+
+                  {paymentMethod === 'razorpay' && (
+                    <div className="mt-4 pl-8 animate-fade-in text-sm text-gray-600">
+                      <p className="mb-2">Pay securely using Credit/Debit Card, Netbanking, or UPI Apps (GPay, PhonePe).</p>
+                      <div className="flex items-center gap-2 text-xs text-green-600 font-medium bg-green-50 p-2 rounded border border-green-100">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Secure Popup will open after clicking "Place Order"
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* UPI Option */}
@@ -252,19 +369,42 @@ export default function CheckoutPage() {
 
                   {paymentMethod === 'upi' && (
                     <div className="mt-4 pl-8 animate-fade-in">
-                      <p className="text-sm text-gray-600 mb-3">Enter your UPI ID to verify payment.</p>
+                      <div className="bg-blue-50 p-3 rounded-lg mb-4 text-sm text-blue-800 border border-blue-100">
+                        <p className="font-bold mb-1">How to Pay:</p>
+                        <ul className="list-disc pl-4 space-y-1">
+                          <li>Open your UPI App (GPay, PhonePe, Paytm).</li>
+                          <li>Send <strong>₹ {total.toLocaleString()}</strong> to <span className="font-mono bg-white px-1 rounded border">fireshop@upi</span></li>
+                          <li>Enter YOUR UPI ID below for reference.</li>
+                        </ul>
+                      </div>
+
+                      <p className="text-sm text-gray-600 mb-3">Your UPI ID (For payment verification):</p>
                       <div className="flex gap-2">
                         <input
                           className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:outline-none"
-                          placeholder="e.g. 9876543210@upi"
+                          placeholder="e.g. yourname@oksbi"
                           value={upiId}
                           onChange={(e) => setUpiId(e.target.value)}
                         />
-                        <button onClick={(e) => { e.stopPropagation(); addToast('UPI ID Verified!', 'success') }} className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800">Verify</button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
+                            if (upiRegex.test(upiId)) {
+                              addToast('UPI Format Valid', 'success');
+                            } else {
+                              addToast('Invalid UPI Format', 'error');
+                            }
+                          }}
+                          className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800"
+                        >
+                          Check
+                        </button>
                       </div>
                       <div className="mt-3 text-xs text-gray-500 flex items-center gap-2">
                         <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        100% Safe Payment
+                        This is a manual payment request. Order will be processed after admin verification.
                       </div>
                     </div>
                   )}

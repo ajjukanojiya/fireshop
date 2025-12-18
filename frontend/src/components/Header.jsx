@@ -87,6 +87,18 @@ export default function Header() {
                 <span className="text-xl">💰</span>
               </Link>
 
+              <Link
+                to="/my-addresses"
+                className="hidden md:flex items-center gap-2 text-gray-600 hover:text-red-600 font-medium transition-colors"
+                title="My Addresses"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="hidden lg:inline">Addresses</span>
+              </Link>
+
               {user.role === 'admin' && (
                 <Link
                   to="/admin/dashboard"
@@ -143,6 +155,15 @@ export default function Header() {
           placeholder="Search..."
           className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
         />
+        <div className="flex gap-2 mt-3 overflow-x-auto pb-2 no-scrollbar">
+          {user && (
+            <>
+              <Link to="/my-orders" className="flex-shrink-0 bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-700">Orders</Link>
+              <Link to="/my-addresses" className="flex-shrink-0 bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-700">Addresses</Link>
+              <Link to="/my-wallet" className="flex-shrink-0 bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-700">Wallet</Link>
+            </>
+          )}
+        </div>
       </div>
     </header>
   );

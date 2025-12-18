@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Mail\OrderPlaced;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class RazorpayController extends Controller
 {
@@ -132,25 +133,49 @@ class RazorpayController extends Controller
                     $request->address['phone'] ?? $user->phone
                 );
 
-                // Create order
-                $order = Order::create([
+                // Prepare order data
+                $orderData = [
                     'user_id' => $user->id,
                     'total_amount' => $total,
                     'status' => 'pending',
-                    'address' => $fullAddress,
-                    'payment_method' => 'razorpay',
-                    'payment_id' => $request->razorpay_payment_id,
-                ]);
+                    // 'payment_method' => 'razorpay', // Some schemas use this
+                ];
+
+                if (Schema::hasColumn('orders', 'address')) {
+                    $orderData['address'] = $fullAddress;
+                }
+
+                if (Schema::hasColumn('orders', 'payment_method')) {
+                    $orderData['payment_method'] = 'razorpay';
+                }
+
+                if (Schema::hasColumn('orders', 'payment_id')) {
+                    $orderData['payment_id'] = $request->razorpay_payment_id;
+                }
+
+                // Create order
+                $order = Order::create($orderData);
 
                 // Create order items
                 foreach ($cartItems as $ci) {
-                    OrderItem::create([
+                    $itemData = [
                         'order_id' => $order->id,
                         'product_id' => $ci->product_id,
                         'quantity' => $ci->quantity,
                         'price' => $ci->product->price,
                         'meta' => $ci->meta ?? null,
-                    ]);
+                    ];
+
+                     // Fix: Add all necessary price columns
+                    if (Schema::hasColumn('order_items', 'unit_price')) {
+                        $itemData['unit_price'] = $ci->product->price;
+                    }
+                     // Ensure price is set if schema needs it (already in array but good to be explicit/safe)
+                     if (Schema::hasColumn('order_items', 'price')) {
+                        $itemData['price'] = $ci->product->price;
+                    }
+
+                    OrderItem::create($itemData);
 
                     $ci->product->decrement('stock', $ci->quantity);
                 }
@@ -202,8 +227,10 @@ class RazorpayController extends Controller
 
                 // Send email
                 try {
-                    Mail::to($user)->send(new OrderPlaced($order));
-                } catch (\Exception $e) {
+                    if ($user->email) {
+                        Mail::to($user)->send(new OrderPlaced($order));
+                    }
+                } catch (\Throwable $e) {
                     Log::error('Order Email Failed: ' . $e->getMessage());
                 }
 

@@ -30,6 +30,10 @@ class CheckoutController extends Controller
             'address.street' => 'required|string',
             'address.city' => 'required|string',
             'address.zip' => 'required|string',
+            'payment_details.upi_id' => 'required_if:payment_method,upi|nullable|string|regex:/^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/',
+        ], [
+            'payment_details.upi_id.regex' => 'The UPI ID format is invalid. Example: user@oksbi',
+            'payment_details.upi_id.required_if' => 'UPI ID is required for UPI payments.'
         ]);
 
         $user = Auth::user();
