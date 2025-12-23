@@ -58,26 +58,35 @@ export default function ProductCard({ product, onQuickView }) {
       <div className="p-4 flex-1 flex flex-col">
         {/* Title */}
         <h3
-          className="font-bold text-gray-900 text-[15px] leading-snug line-clamp-2 cursor-pointer hover:text-red-600 transition-colors mb-2"
+          className="font-bold text-gray-900 text-[15px] leading-snug line-clamp-2 cursor-pointer hover:text-red-600 transition-colors"
           onClick={() => onQuickView(product)}
         >
           {product.title}
         </h3>
 
-        {/* Social Proof */}
-        <div className="flex items-center gap-2 mb-3 text-xs text-gray-500">
-          <div className="flex text-yellow-400">
-            {'★'.repeat(4)}{'☆'.repeat(1)}
-          </div>
-          <span>({soldCount} sold)</span>
-        </div>
-
         {/* Price Section */}
         <div className="mt-auto">
-          <div className="flex items-end gap-2 mb-1">
-            <span className="text-xl font-bold text-gray-900">₹ {product.price.toLocaleString()}</span>
-            <span className="text-sm text-gray-400 line-through mb-1">₹ {mrp.toLocaleString()}</span>
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-xl font-black text-gray-900">₹{product.price.toLocaleString()}</span>
+            {product.inner_unit_value > 0 && (
+              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+                ₹{(product.price / (product.inner_unit_value * (product.unit_value || 1))).toFixed(2)} / {product.inner_unit}
+              </span>
+            )}
           </div>
+
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xs text-gray-400 line-through">₹{mrp.toLocaleString()}</span>
+            <span className="text-[10px] font-bold text-green-600 uppercase tracking-tighter">Save {discount}%</span>
+          </div>
+
+          {/* Unit breakdown summary */}
+          {(product.unit || product.inner_unit_value) && (
+            <div className="mb-4 text-[11px] text-gray-500 font-medium border-l-2 border-red-500 pl-2 py-0.5 bg-gray-50/50">
+              Pack of {product.unit_value || 1} {product.unit}
+              {product.inner_unit_value && <span className="text-gray-400 font-normal"> ({product.inner_unit_value} {product.inner_unit}s included)</span>}
+            </div>
+          )}
 
           {/* Stock Indicator */}
           {isLowStock ? (

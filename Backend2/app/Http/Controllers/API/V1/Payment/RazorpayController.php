@@ -264,4 +264,13 @@ class RazorpayController extends Controller
             return response()->json(['message' => 'Failed to process payment', 'error' => $e->getMessage()], 500);
         }
     }
+    public function testPaymentConfig()
+{
+    return response()->json([
+        'key' => config('services.razorpay.key'),
+        'amount' => 200, // ₹2
+        'currency' => 'INR'
+    ]);
+}
+
 }

@@ -137,8 +137,8 @@ export default function OrderDetail() {
 
               {order.refund && (
                 <div className={`px-4 py-1.5 rounded-full font-bold text-sm uppercase tracking-wide border ${order.refund.status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' :
-                    order.refund.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' :
-                      'bg-yellow-50 text-yellow-700 border-yellow-200'
+                  order.refund.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' :
+                    'bg-yellow-50 text-yellow-700 border-yellow-200'
                   }`}>
                   {order.refund.status === 'approved' ? 'Refunded' :
                     order.refund.status === 'rejected' ? 'Refund Rejected' :
@@ -199,6 +199,11 @@ export default function OrderDetail() {
             {order.payment_method === 'cod' && (
               <div className="mt-4 text-right">
                 <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded font-medium">Payment Mode: Cash on Delivery</span>
+              </div>
+            )}
+            {order.payment_method === 'razorpay' && (
+              <div className="mt-4 text-right">
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded font-medium">Payment Mode: Online (Razorpay)</span>
               </div>
             )}
           </div>

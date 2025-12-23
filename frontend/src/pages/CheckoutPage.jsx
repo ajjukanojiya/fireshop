@@ -13,8 +13,7 @@ export default function CheckoutPage() {
   const { addToast } = useToast();
 
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('upi'); // upi, card, cod
-  const [upiId, setUpiId] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('razorpay'); // razorpay, cod
 
   // Saved Addresses
   const [savedAddresses, setSavedAddresses] = useState([]);
@@ -125,7 +124,7 @@ export default function CheckoutPage() {
 
     try {
       // Step 1: Create Razorpay Order
-      const orderRes = await api.post("/create-razorpay-order", {
+      const orderRes = await api.post("/test-payment-config", {
         amount: total,
       });
 
@@ -138,7 +137,7 @@ export default function CheckoutPage() {
         currency: currency,
         name: "Fireshop",
         description: "Order Payment",
-        order_id: order_id,
+        // order_id: order_id,
         handler: async function (response) {
           try {
             // Step 3: Verify Payment
@@ -165,6 +164,24 @@ export default function CheckoutPage() {
         },
         theme: {
           color: "#dc2626",
+        },
+        config: {
+          display: {
+            blocks: {
+              upi: {
+                name: "Pay via UPI (GPay/PhonePe)",
+                instruments: [
+                  {
+                    method: "upi"
+                  }
+                ]
+              }
+            },
+            sequence: ["block.upi"],
+            preferences: {
+              show_default_blocks: true
+            }
+          }
         },
       };
 
@@ -210,7 +227,7 @@ export default function CheckoutPage() {
       const payload = {
         address: address, // sending full object
         payment_method: paymentMethod,
-        payment_details: paymentMethod === 'upi' ? { upi_id: upiId } : {}
+        payment_details: {}
       };
 
       const res = await api.post("/checkout", payload);
@@ -358,67 +375,6 @@ export default function CheckoutPage() {
                   )}
                 </div>
 
-                {/* UPI Option */}
-                <div className={`border rounded-xl p-4 cursor-pointer transition-all ${paymentMethod === 'upi' ? 'border-red-500 bg-red-50/50 ring-1 ring-red-500' : 'border-gray-200 hover:border-gray-300'}`} onClick={() => setPaymentMethod('upi')}>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${paymentMethod === 'upi' ? 'border-red-600' : 'border-gray-300'}`}>
-                      {paymentMethod === 'upi' && <div className="w-3 h-3 bg-red-600 rounded-full"></div>}
-                    </div>
-                    <span className="font-bold text-gray-800">UPI (Manual)</span>
-                  </div>
-
-                  {paymentMethod === 'upi' && (
-                    <div className="mt-4 pl-8 animate-fade-in">
-                      <div className="bg-blue-50 p-3 rounded-lg mb-4 text-sm text-blue-800 border border-blue-100">
-                        <p className="font-bold mb-1">How to Pay:</p>
-                        <ul className="list-disc pl-4 space-y-1">
-                          <li>Open your UPI App (GPay, PhonePe, Paytm).</li>
-                          <li>Send <strong>₹ {total.toLocaleString()}</strong> to <span className="font-mono bg-white px-1 rounded border">fireshop@upi</span></li>
-                          <li>Enter YOUR UPI ID below for reference.</li>
-                        </ul>
-                      </div>
-
-                      <p className="text-sm text-gray-600 mb-3">Your UPI ID (For payment verification):</p>
-                      <div className="flex gap-2">
-                        <input
-                          className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:outline-none"
-                          placeholder="e.g. yourname@oksbi"
-                          value={upiId}
-                          onChange={(e) => setUpiId(e.target.value)}
-                        />
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
-                            if (upiRegex.test(upiId)) {
-                              addToast('UPI Format Valid', 'success');
-                            } else {
-                              addToast('Invalid UPI Format', 'error');
-                            }
-                          }}
-                          className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800"
-                        >
-                          Check
-                        </button>
-                      </div>
-                      <div className="mt-3 text-xs text-gray-500 flex items-center gap-2">
-                        <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        This is a manual payment request. Order will be processed after admin verification.
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Card Option */}
-                <div className={`border rounded-xl p-4 cursor-pointer transition-all ${paymentMethod === 'card' ? 'border-red-500 bg-red-50/50 ring-1 ring-red-500' : 'border-gray-200 hover:border-gray-300'}`} onClick={() => setPaymentMethod('card')}>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${paymentMethod === 'card' ? 'border-red-600' : 'border-gray-300'}`}>
-                      {paymentMethod === 'card' && <div className="w-3 h-3 bg-red-600 rounded-full"></div>}
-                    </div>
-                    <span className="font-bold text-gray-800">Credit / Debit Card</span>
-                  </div>
-                </div>
 
                 {/* COD Option */}
                 <div className={`border rounded-xl p-4 cursor-pointer transition-all ${paymentMethod === 'cod' ? 'border-red-500 bg-red-50/50 ring-1 ring-red-500' : 'border-gray-200 hover:border-gray-300'}`} onClick={() => setPaymentMethod('cod')}>

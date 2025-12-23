@@ -115,6 +115,7 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function(){
         // Razorpay Payment Routes
         Route::post('/create-razorpay-order', [\App\Http\Controllers\API\V1\Payment\RazorpayController::class, 'createOrder']);
         Route::post('/verify-razorpay-payment', [\App\Http\Controllers\API\V1\Payment\RazorpayController::class, 'verifyPayment']);
+        Route::post('/test-payment-config', [\App\Http\Controllers\API\V1\Payment\RazorpayController::class, 'testPaymentConfig']);
         
         // Address Book Routes
         Route::get('/addresses', [\App\Http\Controllers\API\V1\AddressController::class, 'index']);

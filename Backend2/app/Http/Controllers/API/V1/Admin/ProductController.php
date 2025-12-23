@@ -27,6 +27,10 @@ class ProductController extends Controller
             'stock' => 'required|integer',
             'category_id' => 'required|exists:categories,id',
             'description' => 'nullable|string',
+            'unit' => 'nullable|string',
+            'unit_value' => 'nullable|integer',
+            'inner_unit' => 'nullable|string',
+            'inner_unit_value' => 'nullable|integer',
             'thumbnail' => 'nullable|image|max:2048', // File validation
             'images.*' => 'nullable|image|max:2048',
             'videos.*' => 'nullable|mimes:mp4,mov,avi|max:10240',
@@ -79,6 +83,10 @@ class ProductController extends Controller
             'stock' => 'sometimes|integer',
             'category_id' => 'sometimes|exists:categories,id',
             'description' => 'nullable|string',
+            'unit' => 'nullable|string',
+            'unit_value' => 'nullable|integer',
+            'inner_unit' => 'nullable|string',
+            'inner_unit_value' => 'nullable|integer',
             'thumbnail' => 'nullable|image|max:2048',
         ]);
 

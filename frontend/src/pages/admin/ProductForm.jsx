@@ -3,7 +3,8 @@ import api from '../../api/api';
 
 export default function AdminProductForm({ product, onSuccess, onCancel }) {
     const [formData, setFormData] = useState({
-        title: '', price: '', cost_price: '', mrp: '', stock: '', category_id: '', description: ''
+        title: '', price: '', cost_price: '', mrp: '', stock: '', category_id: '', description: '',
+        unit: 'Unit', unit_value: 1, inner_unit: 'Packet', inner_unit_value: ''
     });
     const [files, setFiles] = useState({ thumbnail: null, images: [], videos: [] });
     const [categories, setCategories] = useState([]);
@@ -19,7 +20,11 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                 mrp: product.mrp || '',
                 stock: product.stock,
                 category_id: product.category_id,
-                description: product.description || ''
+                description: product.description || '',
+                unit: product.unit || 'Unit',
+                unit_value: product.unit_value || 1,
+                inner_unit: product.inner_unit || 'Packet',
+                inner_unit_value: product.inner_unit_value || ''
             });
         }
     }, [product]);
@@ -90,10 +95,57 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                     </div>
                 </div>
 
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3">Packing Breakdown (Industry Standard)</label>
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-gray-600 block italic">1. Outer Packing (Badi Packing)</label>
+                            <div className="flex gap-2">
+                                <div className="flex-1">
+                                    <span className="text-[10px] text-gray-400 block mb-1">Pack of</span>
+                                    <input type="number" className="w-full border p-2 rounded font-bold" value={formData.unit_value} onChange={e => setFormData({ ...formData, unit_value: e.target.value })} placeholder="1" />
+                                </div>
+                                <div className="flex-[2]">
+                                    <span className="text-[10px] text-gray-400 block mb-1">Unit Type</span>
+                                    <select className="w-full border p-2 rounded font-bold bg-white" value={formData.unit} onChange={e => setFormData({ ...formData, unit: e.target.value })}>
+                                        <option value="Unit">Unit</option>
+                                        <option value="Peti">Peti (Box)</option>
+                                        <option value="Packet">Packet</option>
+                                        <option value="Dozen">Dozen</option>
+                                        <option value="Case">Case</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="space-y-2 border-l pl-6 border-gray-200">
+                            <label className="text-xs font-bold text-gray-600 block italic">2. Inner Content (Choti Packing)</label>
+                            <div className="flex gap-2">
+                                <div className="flex-1">
+                                    <span className="text-[10px] text-gray-400 block mb-1">Contains</span>
+                                    <input type="number" className="w-full border p-2 rounded font-bold" value={formData.inner_unit_value} onChange={e => setFormData({ ...formData, inner_unit_value: e.target.value })} placeholder="e.g. 10" />
+                                </div>
+                                <div className="flex-[2]">
+                                    <span className="text-[10px] text-gray-400 block mb-1">Items Type</span>
+                                    <select className="w-full border p-2 rounded font-bold bg-white" value={formData.inner_unit} onChange={e => setFormData({ ...formData, inner_unit: e.target.value })}>
+                                        <option value="Packet">Packet</option>
+                                        <option value="Box">Box</option>
+                                        <option value="Piece">Piece (Nang)</option>
+                                        <option value="Roll">Roll</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="mt-3 text-[10px] bg-blue-50 text-blue-600 p-2 rounded border border-blue-100 flex items-center gap-2">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path></svg>
+                        <span>Logic: <b>{formData.unit_value || 1} {formData.unit}</b> will contain <b>{formData.inner_unit_value || 'X'} {formData.inner_unit}s</b>. Price per {formData.inner_unit} will be auto-calculated.</span>
+                    </div>
+                </div>
+
                 <div className="grid grid-cols-1 gap-4">
                     <div>
                         <label className="text-xs font-bold text-gray-500 uppercase">Thumbnail Image</label>
-                        <input type="file" required={!product} accept="image/*" className="w-full border p-2 rounded" onChange={e => setFiles({ ...files, thumbnail: e.target.files[0] })} />
+                        <input type="file" accept="image/*" className="w-full border p-2 rounded" onChange={e => setFiles({ ...files, thumbnail: e.target.files[0] })} />
                         {product && product.thumbnail_url && <p className="text-xs text-gray-400 mt-1">Leave empty to keep current: <a href={product.thumbnail_url} target="_blank" className="text-blue-500 underline">View</a></p>}
                     </div>
                     <div>

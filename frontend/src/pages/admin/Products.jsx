@@ -56,6 +56,7 @@ export default function AdminProducts() {
                         <tr>
                             <th className="px-6 py-4">Product</th>
                             <th className="px-6 py-4">Price</th>
+                            <th className="px-6 py-4">Unit Info</th>
                             <th className="px-6 py-4">Stock</th>
                             <th className="px-6 py-4">Category</th>
                             <th className="px-6 py-4 text-right">Actions</th>
@@ -74,6 +75,16 @@ export default function AdminProducts() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 font-medium">₹ {p.price}</td>
+                                    <td className="px-6 py-4">
+                                        <div className="text-[10px] uppercase font-black text-gray-400 tracking-wider">
+                                            {p.unit_value} {p.unit}
+                                        </div>
+                                        {p.inner_unit_value && (
+                                            <div className="text-[10px] text-blue-500 font-bold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 inline-block mt-1">
+                                                {p.inner_unit_value} {p.inner_unit}s
+                                            </div>
+                                        )}
+                                    </td>
                                     <td className="px-6 py-4">
                                         <span className={`px-2 py-1 rounded text-xs font-bold ${p.stock < 5 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
                                             {p.stock}

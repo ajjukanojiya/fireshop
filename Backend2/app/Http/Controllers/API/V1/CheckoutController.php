@@ -24,16 +24,12 @@ class CheckoutController extends Controller
     public function checkout(Request $request)
     {
         $request->validate([
-            'payment_method' => 'nullable|string|in:cod,upi,card',
+            'payment_method' => 'nullable|string|in:cod',
             // Simple validation for address fields
             'address' => 'required|array',
             'address.street' => 'required|string',
             'address.city' => 'required|string',
             'address.zip' => 'required|string',
-            'payment_details.upi_id' => 'required_if:payment_method,upi|nullable|string|regex:/^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/',
-        ], [
-            'payment_details.upi_id.regex' => 'The UPI ID format is invalid. Example: user@oksbi',
-            'payment_details.upi_id.required_if' => 'UPI ID is required for UPI payments.'
         ]);
 
         $user = Auth::user();
@@ -124,24 +120,23 @@ class CheckoutController extends Controller
                 $ci->product->decrement('stock', $ci->quantity);
             }
 
-            // **NEW: Log Payment Transaction for Manual Payments**
-            if (in_array($request->payment_method, ['upi', 'card', 'cod'])) {
+            // **NEW: Log Payment Transaction for COD**
+            if ($request->payment_method === 'cod') {
                 PaymentTransaction::create([
                     'order_id' => $order->id,
                     'user_id' => $user->id,
                     'payment_gateway' => 'manual',
-                    'payment_id' => 'manual_' . $order->id . '_' . time(),
+                    'payment_id' => 'cod_' . $order->id . '_' . time(),
                     'amount' => $total,
-                    'gateway_fee' => 0, // No gateway fee for manual payments
+                    'gateway_fee' => 0,
                     'gst_on_fee' => 0,
                     'net_amount' => $total,
                     'currency' => 'INR',
-                    'status' => $request->payment_method === 'cod' ? 'pending' : 'success',
-                    'payment_method' => $request->payment_method,
+                    'status' => 'pending',
+                    'payment_method' => 'cod',
                     'gateway_response' => [
                         'type' => 'manual',
-                        'upi_id' => $request->payment_details['upi_id'] ?? null,
-                        'payment_method' => $request->payment_method
+                        'payment_method' => 'cod'
                     ],
                     'customer_email' => $user->email,
                     'customer_phone' => $user->phone,
@@ -392,24 +387,23 @@ class CheckoutController extends Controller
                 $p['product']->decrement('stock', $p['qty']);
             }
 
-            // **NEW: Log Payment Transaction for Guest Payments**
-            if (isset($r->payment_method) && in_array($r->payment_method, ['upi', 'card', 'cod'])) {
+            // **NEW: Log Payment Transaction for Guest COD**
+            if (isset($r->payment_method) && $r->payment_method === 'cod') {
                 PaymentTransaction::create([
                     'order_id' => $order->id,
                     'user_id' => null, // Guest user
                     'payment_gateway' => 'manual',
-                    'payment_id' => 'guest_' . $order->id . '_' . time(),
+                    'payment_id' => 'cod_guest_' . $order->id . '_' . time(),
                     'amount' => $total,
                     'gateway_fee' => 0,
                     'gst_on_fee' => 0,
                     'net_amount' => $total,
                     'currency' => 'INR',
-                    'status' => $r->payment_method === 'cod' ? 'pending' : 'success',
-                    'payment_method' => $r->payment_method,
+                    'status' => 'pending',
+                    'payment_method' => 'cod',
                     'gateway_response' => [
                         'type' => 'manual_guest',
-                        'upi_id' => $r->payment_details['upi_id'] ?? null,
-                        'payment_method' => $r->payment_method
+                        'payment_method' => 'cod'
                     ],
                     'customer_email' => null,
                     'customer_phone' => $guestPhone,
