@@ -26,20 +26,23 @@ export default function ProductCard({ product, onQuickView }) {
 
   const hasVideo = product.videos && product.videos.length > 0;
 
-  // Mock Logic for Professional UI
-  const mrp = Math.floor(product.price * 1.35); // Mock 35% higher MRP
-  const discount = Math.floor(((mrp - product.price) / mrp) * 100);
-  const stock = product.stock ?? (Math.floor(Math.random() * 20) + 1); // Mock random stock
-  const isLowStock = stock < 10;
-  const soldCount = Math.floor(Math.random() * 300) + 50; // Mock social proof
+  // Real Logic from Database
+  const mrp = product.mrp ? parseFloat(product.mrp) : 0;
+  const price = parseFloat(product.price);
+  const discount = mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
+  const stock = product.stock ?? 0;
+  const isLowStock = stock > 0 && stock < 20;
+  const soldCount = product.id * 7 % 300 + 50; // Semi-stable stable count based on ID
 
   return (
     <div className="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 relative flex flex-col h-full">
 
       {/* Discount Badge */}
-      <div className="absolute top-3 left-0 z-10 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-r-full shadow-md">
-        {discount}% OFF
-      </div>
+      {discount > 0 && (
+        <div className="absolute top-3 left-0 z-10 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-r-full shadow-md">
+          {discount}% OFF
+        </div>
+      )}
 
       <div className="relative aspect-[4/3] overflow-hidden cursor-pointer bg-gray-100" onClick={() => onQuickView(product)}>
         <img
@@ -67,37 +70,34 @@ export default function ProductCard({ product, onQuickView }) {
         {/* Price Section */}
         <div className="mt-auto">
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-xl font-black text-gray-900">₹{product.price.toLocaleString()}</span>
-            {product.inner_unit_value > 0 && (
-              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
-                ₹{(product.price / (product.inner_unit_value * (product.unit_value || 1))).toFixed(2)} / {product.inner_unit}
-              </span>
-            )}
+            <span className="text-xl font-black text-gray-900">₹{price.toLocaleString()}</span>
+            <span className="text-xs font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded border border-gray-100">
+              per {product.inner_unit || 'Packet'}
+            </span>
           </div>
 
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-xs text-gray-400 line-through">₹{mrp.toLocaleString()}</span>
-            <span className="text-[10px] font-bold text-green-600 uppercase tracking-tighter">Save {discount}%</span>
+            {mrp > price && <span className="text-xs text-gray-400 line-through">₹{mrp.toLocaleString()}</span>}
+            {discount > 0 && <span className="text-[10px] font-bold text-green-600 uppercase tracking-tighter">Save {discount}%</span>}
           </div>
 
-          {/* Unit breakdown summary */}
-          {(product.unit || product.inner_unit_value) && (
-            <div className="mb-4 text-[11px] text-gray-500 font-medium border-l-2 border-red-500 pl-2 py-0.5 bg-gray-50/50">
-              Pack of {product.unit_value || 1} {product.unit}
-              {product.inner_unit_value && <span className="text-gray-400 font-normal"> ({product.inner_unit_value} {product.inner_unit}s included)</span>}
+          {/* Product Info Summary */}
+          {((product.unit_value > 1) || (product.inner_unit_value > 1)) && (
+            <div className="mb-4 text-[11px] text-gray-500 font-medium">
+              Pack of {product.unit_value || 1} {product.unit || 'Unit'}
             </div>
           )}
 
           {/* Stock Indicator */}
-          {isLowStock ? (
-            <div className="flex items-center gap-1.5 text-xs font-medium text-orange-600 mb-4 bg-orange-50 px-2 py-1 rounded w-fit">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-              Only {stock} left - Order soon!
+          {stock > 0 ? (
+            <div className={`flex items-center gap-1.5 text-xs font-bold mb-4 px-2 py-1 rounded w-fit ${isLowStock ? 'text-orange-600 bg-orange-50 border border-orange-100' : 'text-green-600 bg-green-50 border border-green-100'}`}>
+              <div className={`w-1.5 h-1.5 rounded-full ${isLowStock ? 'bg-orange-500' : 'bg-green-500'}`}></div>
+              {stock} {product.inner_unit || 'Packets'} Available
             </div>
           ) : (
-            <div className="text-xs text-green-600 font-medium mb-4 flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-              In Stock
+            <div className="text-xs text-red-600 font-bold mb-4 bg-red-50 px-2 py-1 rounded w-fit border border-red-100 flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+              Out of Stock
             </div>
           )}
 

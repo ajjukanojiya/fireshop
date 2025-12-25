@@ -6,6 +6,7 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
         title: '', price: '', cost_price: '', mrp: '', stock: '', category_id: '', description: '',
         unit: 'Unit', unit_value: 1, inner_unit: 'Packet', inner_unit_value: ''
     });
+    const [bulkPrice, setBulkPrice] = useState(''); // Bulk Purchase Price (Peti ka Rate)
     const [files, setFiles] = useState({ thumbnail: null, images: [], videos: [] });
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -66,26 +67,58 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                     <input className="w-full border p-2 rounded" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} required />
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 grid grid-cols-3 gap-4">
                     <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase">Price (Selling)</label>
-                        <input type="number" className="w-full border p-2 rounded" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required />
+                        <label className="text-[10px] font-black text-blue-500 uppercase tracking-widest block mb-1">Bulk Purchase Price ({formData.unit} Rate)</label>
+                        <input
+                            type="number"
+                            className="w-full border p-2 rounded font-bold bg-white"
+                            value={bulkPrice}
+                            onChange={e => {
+                                const val = e.target.value;
+                                setBulkPrice(val);
+                                if (val && formData.inner_unit_value > 0) {
+                                    const calculatedCost = (parseFloat(val) / parseFloat(formData.inner_unit_value)).toFixed(2);
+                                    setFormData(prev => ({ ...prev, cost_price: calculatedCost }));
+                                }
+                            }}
+                            placeholder="e.g. 1200"
+                        />
+                        <p className="text-[9px] text-blue-400 mt-1 italic">Peti ka kharid daam dale</p>
                     </div>
                     <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase">Cost Price (Purchase)</label>
-                        <input type="number" className="w-full border p-2 rounded" value={formData.cost_price} onChange={e => setFormData({ ...formData, cost_price: e.target.value })} placeholder="Optional" />
+                        <label className="text-[10px] font-black text-blue-500 uppercase tracking-widest block mb-1">Cost Price (per {formData.inner_unit})</label>
+                        <input
+                            type="number"
+                            className="w-full border p-2 rounded font-bold bg-gray-50 mb-1"
+                            value={formData.cost_price}
+                            onChange={e => setFormData({ ...formData, cost_price: e.target.value })}
+                            placeholder="Auto-calculated"
+                        />
+                        <p className="text-[9px] text-blue-400 italic">1 {formData.inner_unit} ka daam</p>
                     </div>
-                    <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase">MRP</label>
-                        <input type="number" className="w-full border p-2 rounded" value={formData.mrp} onChange={e => setFormData({ ...formData, mrp: e.target.value })} />
+                    <div className="flex flex-col justify-center">
+                        {formData.cost_price > 0 && (
+                            <div className="bg-white p-2 rounded border border-blue-200">
+                                <p className="text-[10px] text-gray-500 uppercase font-bold">Suggested Sell</p>
+                                <p className="text-sm font-black text-green-600">₹{(parseFloat(formData.cost_price) * 1.5).toFixed(0)} - ₹{(parseFloat(formData.cost_price) * 2).toFixed(0)}</p>
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase">Stock</label>
-                        <input type="number" className="w-full border p-2 rounded" value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} required />
+                        <label className="text-xs font-bold text-gray-500 uppercase">Selling Price (Final)</label>
+                        <input type="number" className="w-full border p-2 rounded font-bold border-green-300 bg-green-50 focus:bg-white" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required />
                     </div>
+                    <div>
+                        <label className="text-xs font-bold text-gray-500 uppercase">MRP (Printed)</label>
+                        <input type="number" className="w-full border p-2 rounded" value={formData.mrp} onChange={e => setFormData({ ...formData, mrp: e.target.value })} />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                     <div>
                         <label className="text-xs font-bold text-gray-500 uppercase">Category</label>
                         <select className="w-full border p-2 rounded" value={formData.category_id} onChange={e => setFormData({ ...formData, category_id: e.target.value })} required>
@@ -122,7 +155,16 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                             <div className="flex gap-2">
                                 <div className="flex-1">
                                     <span className="text-[10px] text-gray-400 block mb-1">Contains</span>
-                                    <input type="number" className="w-full border p-2 rounded font-bold" value={formData.inner_unit_value} onChange={e => setFormData({ ...formData, inner_unit_value: e.target.value })} placeholder="e.g. 10" />
+                                    <input type="number" className="w-full border p-2 rounded font-bold" value={formData.inner_unit_value} onChange={e => {
+                                        const val = e.target.value === '' ? '' : parseInt(e.target.value);
+                                        setFormData(prev => ({ ...prev, inner_unit_value: val }));
+
+                                        // Auto update cost price if bulk price exists
+                                        if (bulkPrice && val > 0) {
+                                            const calculatedCost = (parseFloat(bulkPrice) / parseFloat(val)).toFixed(2);
+                                            setFormData(prev => ({ ...prev, cost_price: calculatedCost }));
+                                        }
+                                    }} placeholder="e.g. 10" />
                                 </div>
                                 <div className="flex-[2]">
                                     <span className="text-[10px] text-gray-400 block mb-1">Items Type</span>
@@ -131,15 +173,56 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                                         <option value="Box">Box</option>
                                         <option value="Piece">Piece (Nang)</option>
                                         <option value="Roll">Roll</option>
+                                        <option value="Unit">Unit</option>
                                     </select>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div className="mt-3 text-[10px] bg-blue-50 text-blue-600 p-2 rounded border border-blue-100 flex items-center gap-2">
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path></svg>
-                        <span>Logic: <b>{formData.unit_value || 1} {formData.unit}</b> will contain <b>{formData.inner_unit_value || 'X'} {formData.inner_unit}s</b>. Price per {formData.inner_unit} will be auto-calculated.</span>
+
+                    <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-2 gap-6">
+                        {formData.inner_unit_value > 1 && (
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-gray-600 block italic">Step 1: Stock in {formData.unit}s (Bulk)</label>
+                                <input
+                                    type="number"
+                                    step="any"
+                                    className="w-full border p-2 rounded font-bold bg-yellow-50 border-yellow-200 focus:bg-yellow-100 outline-none transition-all"
+                                    placeholder={`e.g. 10 ${formData.unit}s`}
+                                    value={formData.inner_unit_value > 0 ? (Number(formData.stock || 0) / Number(formData.inner_unit_value)).toFixed(2).replace(/\.00$/, '') : ''}
+                                    onChange={e => {
+                                        const bulkVal = e.target.value;
+                                        const bulkUnits = bulkVal === '' ? 0 : parseFloat(bulkVal);
+                                        const convRate = Number(formData.inner_unit_value) || 1;
+                                        const total = Math.round(bulkUnits * convRate);
+                                        setFormData(prev => ({ ...prev, stock: total }));
+                                    }}
+                                />
+                                <p className="text-[10px] text-yellow-700 font-bold uppercase tracking-tight">Bulk Entry (Optional)</p>
+                            </div>
+                        )}
+                        <div className={`${formData.inner_unit_value > 1 ? '' : 'col-span-2'} space-y-1`}>
+                            <label className="text-xs font-bold text-gray-800 block">Total {formData.inner_unit}s (Stock Item)</label>
+                            <input
+                                type="number"
+                                className="w-full border-2 p-3 rounded-lg font-black text-lg bg-blue-50 border-blue-200 focus:bg-white focus:border-blue-500 outline-none transition-all"
+                                value={formData.stock}
+                                onChange={e => setFormData({ ...formData, stock: e.target.value === '' ? '' : parseInt(e.target.value) })}
+                                placeholder="Enter total packets here"
+                                required
+                            />
+                            <p className="text-[10px] text-blue-700 font-bold uppercase tracking-tight">Total count yahan dale (Bas yahi zaroori hai)</p>
+                        </div>
                     </div>
+
+                    {formData.inner_unit_value > 1 && (
+                        <div className="mt-3 text-[11px] bg-red-50 text-red-600 p-3 rounded-lg border border-red-100 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path></svg>
+                                <span>Calculation: <b>{formData.stock || 0} {formData.inner_unit}s</b> contains <b>{formData.inner_unit_value > 0 ? Math.floor(Number(formData.stock || 0) / Number(formData.inner_unit_value)) : 0} {formData.unit}s</b> and <b>{formData.stock % (formData.inner_unit_value || 1)}</b> loose items.</span>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 gap-4">
