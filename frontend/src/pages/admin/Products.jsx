@@ -71,7 +71,14 @@ export default function AdminProducts() {
                                             <div className="w-10 h-10 bg-gray-100 rounded border flex-shrink-0">
                                                 {p.thumbnail_url && <img src={p.thumbnail_url} className="w-full h-full object-cover rounded" />}
                                             </div>
-                                            <span className="font-medium text-gray-900 line-clamp-1">{p.title}</span>
+                                            <div className="flex flex-col">
+                                                <span className="font-medium text-gray-900 line-clamp-1">{p.title}</span>
+                                                {p.is_featured === 1 && (
+                                                    <span className="text-[10px] font-black text-red-600 bg-red-50 border border-red-100 px-1.5 py-0.5 rounded w-fit mt-0.5">
+                                                        FEATURED
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 font-medium">₹ {p.price}</td>

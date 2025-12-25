@@ -7,9 +7,7 @@ export default function ProductCard({ product, onQuickView }) {
   const { addToast } = useToast();
 
   const add = async (e) => {
-    e.stopPropagation(); // prevent quickview trigger if clicked on button
-
-    // Check real stock
+    e.stopPropagation();
     const currentStock = product.stock ?? 0;
     if (currentStock === 0) {
       addToast("This product is currently out of stock", "error");
@@ -25,95 +23,88 @@ export default function ProductCard({ product, onQuickView }) {
   };
 
   const hasVideo = product.videos && product.videos.length > 0;
-
-  // Real Logic from Database
   const mrp = product.mrp ? parseFloat(product.mrp) : 0;
   const price = parseFloat(product.price);
   const discount = mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
   const stock = product.stock ?? 0;
   const isLowStock = stock > 0 && stock < 20;
-  const soldCount = product.id * 7 % 300 + 50; // Semi-stable stable count based on ID
 
   return (
-    <div className="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 relative flex flex-col h-full">
-
-      {/* Discount Badge */}
+    <div
+      className="group bg-white rounded-[2rem] border border-slate-100 hover:border-red-100 transition-all duration-500 relative flex flex-col h-full hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden"
+    >
+      {/* Discount Badge - Floating Design */}
       {discount > 0 && (
-        <div className="absolute top-3 left-0 z-10 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-r-full shadow-md">
-          {discount}% OFF
+        <div className="absolute top-4 left-4 z-10 bg-[#991b1b] text-white text-[10px] font-black px-2.5 py-1 rounded-lg shadow-lg shadow-red-900/10 uppercase tracking-widest">
+          {discount}% Save
         </div>
       )}
 
-      <div className="relative aspect-[4/3] overflow-hidden cursor-pointer bg-gray-100" onClick={() => onQuickView(product)}>
+      {/* Media Container */}
+      <div
+        className="relative aspect-[1/1] overflow-hidden cursor-pointer group/img"
+        onClick={() => onQuickView(product)}
+      >
         <img
           src={product.thumbnail_url}
           alt={product.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 ease-in-out"
           loading="lazy"
         />
+        <div className="absolute inset-0 bg-slate-900/0 group-hover/img:bg-slate-900/5 transition-colors duration-500" />
+
         {hasVideo && (
-          <div className="absolute right-3 bottom-3 bg-black/60 backdrop-blur-md text-white p-2.5 rounded-full hover:bg-red-600 transition-colors shadow-lg border border-white/10">
+          <div className="absolute right-4 bottom-4 bg-white/90 backdrop-blur-md text-[#991b1b] p-3 rounded-2xl shadow-xl border border-white opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500">
             <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
           </div>
         )}
       </div>
 
-      <div className="p-4 flex-1 flex flex-col">
-        {/* Title */}
-        <h3
-          className="font-bold text-gray-900 text-[15px] leading-snug line-clamp-2 cursor-pointer hover:text-red-600 transition-colors"
-          onClick={() => onQuickView(product)}
-        >
-          {product.title}
-        </h3>
+      {/* Content Section */}
+      <div className="p-6 flex-1 flex flex-col">
+        <div className="mb-4">
+          {/* Category tag simulated if needed, or just better spacing */}
+          <h3
+            className="font-black text-slate-800 text-lg leading-tight line-clamp-2 cursor-pointer hover:text-[#991b1b] transition-colors"
+            onClick={() => onQuickView(product)}
+          >
+            {product.title}
+          </h3>
+        </div>
 
-        {/* Price Section */}
-        <div className="mt-auto">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-xl font-black text-gray-900">₹{price.toLocaleString()}</span>
-            <span className="text-xs font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded border border-gray-100">
-              per {product.inner_unit || 'Packet'}
-            </span>
+        <div className="mt-auto space-y-4">
+          {/* Pricing Row */}
+          <div className="flex items-baseline justify-between">
+            <div className="flex flex-col">
+              <span className="text-2xl font-black text-slate-900 leading-none">₹{price.toLocaleString()}</span>
+              <div className="flex items-center gap-1.5 mt-1">
+                {mrp > price && <span className="text-xs text-slate-400 line-through">₹{mrp.toLocaleString()}</span>}
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">/ {product.inner_unit || 'Pack'}</span>
+              </div>
+            </div>
+            {stock > 0 && (
+              <div className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${isLowStock ? 'text-amber-600 bg-amber-50' : 'text-teal-600 bg-teal-50'}`}>
+                {isLowStock ? 'Low Stock' : 'In Stock'}
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center gap-2 mb-3">
-            {mrp > price && <span className="text-xs text-gray-400 line-through">₹{mrp.toLocaleString()}</span>}
-            {discount > 0 && <span className="text-[10px] font-bold text-green-600 uppercase tracking-tighter">Save {discount}%</span>}
-          </div>
-
-          {/* Product Info Summary */}
+          {/* Quick Stats Helper */}
           {((product.unit_value > 1) || (product.inner_unit_value > 1)) && (
-            <div className="mb-4 text-[11px] text-gray-500 font-medium">
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1.5 rounded-xl w-fit">
               Pack of {product.unit_value || 1} {product.unit || 'Unit'}
             </div>
           )}
 
-          {/* Stock Indicator */}
-          {stock > 0 ? (
-            <div className={`flex items-center gap-1.5 text-xs font-bold mb-4 px-2 py-1 rounded w-fit ${isLowStock ? 'text-orange-600 bg-orange-50 border border-orange-100' : 'text-green-600 bg-green-50 border border-green-100'}`}>
-              <div className={`w-1.5 h-1.5 rounded-full ${isLowStock ? 'bg-orange-500' : 'bg-green-500'}`}></div>
-              {stock} {product.inner_unit || 'Packets'} Available
-            </div>
-          ) : (
-            <div className="text-xs text-red-600 font-bold mb-4 bg-red-50 px-2 py-1 rounded w-fit border border-red-100 flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-              Out of Stock
-            </div>
-          )}
-
+          {/* Add Action */}
           <button
             onClick={add}
             disabled={stock === 0}
-            className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-all shadow hover:shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 ${stock === 0 ? 'bg-gray-200 text-gray-500 cursor-not-allowed shadow-none' : 'bg-gray-900 hover:bg-red-600 text-white'}`}
+            className={`w-full py-4 rounded-[1.2rem] font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 active:scale-95 ${stock === 0 ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-[#0f172a] hover:bg-[#991b1b] text-white shadow-xl shadow-slate-200 hover:shadow-red-900/20'}`}
           >
-            {stock === 0 ? (
+            {stock === 0 ? 'Sold Out' : (
               <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
-                Out of Stock
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
                 Add to Cart
               </>
             )}
@@ -121,5 +112,5 @@ export default function ProductCard({ product, onQuickView }) {
         </div>
       </div>
     </div>
-  )
+  );
 }

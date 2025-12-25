@@ -14,6 +14,7 @@ export default function Header() {
   const [token] = useState(localStorage.getItem('token'));
   const [recentOrders, setRecentOrders] = useState([]);
   const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("token"));
 
@@ -39,25 +40,39 @@ export default function Header() {
     navigate("/");
   };
 
+  const handleSearch = (e) => {
+    if (e.key === 'Enter') {
+      const term = searchTerm.trim();
+      if (term) {
+        navigate(`/?search=${encodeURIComponent(term)}`);
+      } else {
+        navigate(`/`);
+      }
+    }
+  };
+
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-30">
-      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+    <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-40 transition-all duration-300">
+      <div className="max-w-7xl mx-auto px-4 py-3 md:py-4 flex items-center justify-between gap-4">
 
         {/* Logo */}
-        <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent hover:opacity-90 transition-opacity">
-          FireShop
+        <Link to="/" className="text-2xl font-black bg-gradient-to-r from-[#991b1b] to-[#7f1d1d] bg-clip-text text-transparent hover:opacity-90 transition-opacity tracking-tighter">
+          FIRESHOP
         </Link>
 
         {/* Desktop Search - Hidden on mobile */}
         <div className="hidden md:block flex-1 max-w-xl mx-6">
           <div className="relative group">
             <input
-              placeholder="Search fireworks, videos, packs..."
-              className="w-full border border-gray-200 bg-gray-50 rounded-full px-5 py-2.5 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all shadow-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={handleSearch}
+              placeholder="Search for firecrackers, packs, or categories..."
+              className="w-full border border-gray-200 bg-gray-100/50 rounded-2xl px-5 py-2.5 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:bg-white focus:border-red-500 transition-all shadow-sm group-hover:shadow-md"
             />
-            <button className="absolute right-1 top-1/2 -translate-y-1/2 bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded-full text-sm font-medium transition-colors">
-              Search
-            </button>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none text-gray-400 group-focus-within:text-[#991b1b] transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            </div>
           </div>
         </div>
 
@@ -102,7 +117,7 @@ export default function Header() {
               {user.role === 'admin' && (
                 <Link
                   to="/admin/dashboard"
-                  className="hidden md:flex items-center gap-2 text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100 hover:bg-red-100 font-bold text-sm transition-colors"
+                  className="hidden md:flex items-center gap-2 text-[#991b1b] bg-[#fef2f2] px-3 py-1 rounded-full border border-red-100 hover:bg-red-100 font-bold text-sm transition-colors"
                 >
                   <span className="text-lg">🛡️</span>
                   <span>Admin</span>
@@ -133,13 +148,13 @@ export default function Header() {
           {/* Cart */}
           <Link
             to="/cart"
-            className="relative p-2 text-gray-700 hover:text-red-600 transition-colors"
+            className="relative p-2 text-slate-900 hover:text-[#991b1b] transition-colors"
           >
             <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
             </svg>
             {itemsCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full border-2 border-white">
+              <span className="absolute -top-1 -right-1 bg-[#991b1b] text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full border-2 border-white">
                 {itemsCount}
               </span>
             )}
@@ -150,17 +165,24 @@ export default function Header() {
       {/* Mobile Menu Bar (Bottom fixed or simple row below) - Optional but good for UX */}
       {/* For now, relying on top header. If user wants strictly mobile friendly, we just made search hidden on mobile to save space. */}
       {/* Let's add a small mobile search bar row if on mobile */}
-      <div className="md:hidden px-4 pb-3">
-        <input
-          placeholder="Search..."
-          className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
-        />
-        <div className="flex gap-2 mt-3 overflow-x-auto pb-2 no-scrollbar">
+      {/* Mobile Search & Navigation */}
+      <div className="md:hidden px-4 pb-4">
+        <div className="relative mb-3">
+          <input
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={handleSearch}
+            placeholder="Search products..."
+            className="w-full border border-gray-200 bg-gray-100/50 rounded-xl px-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:bg-white focus:border-red-500 transition-all"
+          />
+          <svg className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        </div>
+        <div className="flex gap-2.5 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
           {user && (
             <>
-              <Link to="/my-orders" className="flex-shrink-0 bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-700">Orders</Link>
-              <Link to="/my-addresses" className="flex-shrink-0 bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-700">Addresses</Link>
-              <Link to="/my-wallet" className="flex-shrink-0 bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-700">Wallet</Link>
+              <Link to="/my-orders" className="flex-shrink-0 bg-white border border-gray-100 shadow-sm px-4 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">Orders</Link>
+              <Link to="/my-addresses" className="flex-shrink-0 bg-white border border-gray-100 shadow-sm px-4 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">Addresses</Link>
+              <Link to="/my-wallet" className="flex-shrink-0 bg-white border border-gray-100 shadow-sm px-4 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">Wallet</Link>
             </>
           )}
         </div>

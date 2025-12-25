@@ -4,7 +4,7 @@ import api from '../../api/api';
 export default function AdminProductForm({ product, onSuccess, onCancel }) {
     const [formData, setFormData] = useState({
         title: '', price: '', cost_price: '', mrp: '', stock: '', category_id: '', description: '',
-        unit: 'Unit', unit_value: 1, inner_unit: 'Packet', inner_unit_value: ''
+        unit: 'Unit', unit_value: 1, inner_unit: 'Packet', inner_unit_value: '', is_featured: false
     });
     const [bulkPrice, setBulkPrice] = useState(''); // Bulk Purchase Price (Peti ka Rate)
     const [files, setFiles] = useState({ thumbnail: null, images: [], videos: [] });
@@ -25,7 +25,8 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                 unit: product.unit || 'Unit',
                 unit_value: product.unit_value || 1,
                 inner_unit: product.inner_unit || 'Packet',
-                inner_unit_value: product.inner_unit_value || ''
+                inner_unit_value: product.inner_unit_value || '',
+                is_featured: product.is_featured === 1 || product.is_featured === true || false
             });
         }
     }, [product]);
@@ -36,7 +37,14 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
 
         // Create FormData
         const payload = new FormData();
-        Object.keys(formData).forEach(key => payload.append(key, formData[key]));
+        Object.keys(formData).forEach(key => {
+            // Convert boolean for is_featured for PHP/Laravel
+            if (key === 'is_featured') {
+                payload.append(key, formData[key] ? 1 : 0);
+            } else {
+                payload.append(key, formData[key]);
+            }
+        });
 
         if (files.thumbnail) payload.append('thumbnail', files.thumbnail);
         Array.from(files.images).forEach(f => payload.append('images[]', f));
@@ -125,6 +133,20 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                             <option value="">Select Category</option>
                             {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
+                    </div>
+                    <div className="flex items-center pt-5">
+                        <label className="flex items-center gap-3 p-3 bg-red-50 border border-red-100 rounded-xl cursor-pointer hover:bg-red-100 transition-colors w-full">
+                            <input
+                                type="checkbox"
+                                className="w-5 h-5 accent-red-600 rounded"
+                                checked={formData.is_featured}
+                                onChange={e => setFormData({ ...formData, is_featured: e.target.checked })}
+                            />
+                            <div>
+                                <p className="text-xs font-black text-red-600 uppercase tracking-tighter">Promote this Product</p>
+                                <p className="text-[10px] text-red-400 font-bold">Show on Home Page Hero Section</p>
+                            </div>
+                        </label>
                     </div>
                 </div>
 
