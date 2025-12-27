@@ -20,7 +20,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             sudo apt-get update
-            sudo apt-get install -y php-cli php-fpm php-mysql php-xml php-curl php-mbstring php-zip unzip nginx git
+            sudo apt-get install -y php-cli php-fpm php-mysql php-xml php-curl php-mbstring php-zip php-bcmath php-intl unzip nginx git
             
             # Setup project directory if not exists
             sudo mkdir -p /var/www/fireshop
@@ -46,16 +46,23 @@ jobs:
             # Setup .env
             if [ ! -f ".env" ]; then
               cp .env.example .env
+              sed -i "s/APP_DEBUG=false/APP_DEBUG=true/" .env
               sed -i "s|APP_URL=http://localhost|APP_URL=http://${{ secrets.EC2_IP }}|" .env
               sed -i "s/DB_HOST=127.0.0.1/DB_HOST=fireshop-db.cbcqkg8emzwm.ap-south-1.rds.amazonaws.com/" .env
               sed -i "s/DB_DATABASE=laravel/DB_DATABASE=fireshop_db/" .env
               sed -i "s/DB_USERNAME=root/DB_USERNAME=admin/" .env
               sed -i "s/DB_PASSWORD=/DB_PASSWORD=${{ secrets.DB_PASSWORD }}/" .env
               php artisan key:generate
+            else
+              # Refresh values if .env exists
+              sed -i "s/APP_DEBUG=false/APP_DEBUG=true/" .env
+              sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=${{ secrets.DB_PASSWORD }}/" .env
             fi
             
             php artisan migrate --force
             php artisan storage:link
+            php artisan config:clear
+            php artisan cache:clear
             
             # Refresh permissions
             sudo chown -R www-data:www-data storage bootstrap/cache
