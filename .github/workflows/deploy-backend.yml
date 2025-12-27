@@ -19,10 +19,15 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            set -e
             sudo apt-get update
             sudo apt-get install -y php-cli php-fpm php-mysql php-xml php-curl php-mbstring php-zip php-bcmath php-intl unzip nginx git
             
-            # Setup project directory if not exists
+            # Detect PHP version
+            PHP_VERSION=$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')
+            echo "Detected PHP version: $PHP_VERSION"
+
+            # Setup project directory
             sudo mkdir -p /var/www/fireshop
             sudo chown -R ubuntu:ubuntu /var/www/fireshop
             
@@ -54,9 +59,7 @@ jobs:
               sed -i "s/DB_PASSWORD=/DB_PASSWORD=${{ secrets.DB_PASSWORD }}/" .env
               php artisan key:generate
             else
-              # Refresh values if .env exists
               sed -i "s/APP_DEBUG=false/APP_DEBUG=true/" .env
-              sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=${{ secrets.DB_PASSWORD }}/" .env
             fi
             
             php artisan migrate --force
@@ -68,7 +71,7 @@ jobs:
             sudo chown -R www-data:www-data storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
             
-            # Nginx config (Simple)
+            # Nginx config
             sudo tee /etc/nginx/sites-available/fireshop <<EOF
             server {
                 listen 80;
@@ -86,13 +89,8 @@ jobs:
                     try_files \$uri \$uri/ /index.php?\$query_string;
                 }
 
-                location = /favicon.ico { access_log off; log_not_found off; }
-                location = /robots.txt  { access_log off; log_not_found off; }
-
-                error_page 404 /index.php;
-
                 location ~ \.php\$ {
-                    fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+                    fastcgi_pass unix:/var/run/php/php\$PHP_VERSION-fpm.sock;
                     fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
                     include fastcgi_params;
                 }
@@ -104,4 +102,5 @@ jobs:
             EOF
 
             sudo ln -sf /etc/nginx/sites-available/fireshop /etc/nginx/sites-enabled/
+            sudo rm -f /etc/nginx/sites-enabled/default
             sudo nginx -t && sudo systemctl reload nginx
