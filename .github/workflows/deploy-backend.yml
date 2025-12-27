@@ -3,8 +3,6 @@ name: Deploy Backend to AWS
 on:
   push:
     branches: [ "main", "master" ]
-    paths:
-      - 'Backend2/**'
 
 jobs:
   deploy:
