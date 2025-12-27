@@ -1,0 +1,100 @@
+name: Deploy Backend to AWS
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    paths:
+      - 'Backend2/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_IP }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo apt-get update
+            sudo apt-get install -y php-cli php-fpm php-mysql php-xml php-curl php-mbstring php-zip unzip nginx git
+            
+            # Setup project directory if not exists
+            sudo mkdir -p /var/www/fireshop
+            sudo chown -R ubuntu:ubuntu /var/www/fireshop
+            
+            cd /var/www/fireshop
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/${{ github.repository }} .
+            else
+              git pull origin ${{ github.ref_name }}
+            fi
+
+            cd Backend2
+            
+            # Install Composer
+            if ! [ -x "$(command -v composer)" ]; then
+              curl -sS https://getcomposer.org/installer | php
+              sudo mv composer.phar /usr/local/bin/composer
+            fi
+            
+            composer install --no-dev --optimize-autoloader
+            
+            # Setup .env
+            if [ ! -f ".env" ]; then
+              cp .env.example .env
+              sed -i "s|APP_URL=http://localhost|APP_URL=http://${{ secrets.EC2_IP }}|" .env
+              sed -i "s/DB_HOST=127.0.0.1/DB_HOST=fireshop-db.cbcqkg8emzwm.ap-south-1.rds.amazonaws.com/" .env
+              sed -i "s/DB_DATABASE=laravel/DB_DATABASE=fireshop_db/" .env
+              sed -i "s/DB_USERNAME=root/DB_USERNAME=admin/" .env
+              sed -i "s/DB_PASSWORD=/DB_PASSWORD=${{ secrets.DB_PASSWORD }}/" .env
+              php artisan key:generate
+            fi
+            
+            php artisan migrate --force
+            php artisan storage:link
+            
+            # Refresh permissions
+            sudo chown -R www-data:www-data storage bootstrap/cache
+            sudo chmod -R 775 storage bootstrap/cache
+            
+            # Nginx config (Simple)
+            sudo tee /etc/nginx/sites-available/fireshop <<EOF
+            server {
+                listen 80;
+                server_name ${{ secrets.EC2_IP }};
+                root /var/www/fireshop/Backend2/public;
+
+                add_header X-Frame-Options "SAMEORIGIN";
+                add_header X-Content-Type-Options "nosniff";
+
+                index index.php;
+
+                charset utf-8;
+
+                location / {
+                    try_files \$uri \$uri/ /index.php?\$query_string;
+                }
+
+                location = /favicon.ico { access_log off; log_not_found off; }
+                location = /robots.txt  { access_log off; log_not_found off; }
+
+                error_page 404 /index.php;
+
+                location ~ \.php\$ {
+                    fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+                    fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
+                    include fastcgi_params;
+                }
+
+                location ~ /\.(?!well-known).* {
+                    deny all;
+                }
+            }
+            EOF
+
+            sudo ln -sf /etc/nginx/sites-available/fireshop /etc/nginx/sites-enabled/
+            sudo nginx -t && sudo systemctl reload nginx

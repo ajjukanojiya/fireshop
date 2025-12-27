@@ -52,9 +52,6 @@ export default function Product() {
     </div>
   );
 
-  const videoUrl = p.videos?.length
-    ? (p.videos[0].url.startsWith('http') ? p.videos[0].url : `http://127.0.0.1:8000/stream/${p.videos[0].url}`)
-    : null;
 
   return (
     <div className="min-h-screen bg-[#fcfcfc]">
@@ -67,14 +64,38 @@ export default function Product() {
               <div className="aspect-[4/3] rounded-[1.5rem] overflow-hidden bg-white shadow-inner border border-slate-100">
                 <img src={p.thumbnail_url} alt={p.title} className="w-full h-full object-cover" loading="lazy" />
               </div>
-              {videoUrl && (
-                <div className="rounded-[1.5rem] overflow-hidden shadow-2xl border border-white/10 bg-black">
-                  <video controls className="w-full" crossOrigin="anonymous">
-                    <source src={videoUrl} type="video/mp4" />
-                  </video>
+              {p.images && p.images.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                  {p.images.map((img, idx) => (
+                    <div key={img.id || idx} className="h-20 aspect-square rounded-xl overflow-hidden border border-slate-100 flex-shrink-0 shadow-sm">
+                      <img src={img.url} className="w-full h-full object-cover" alt={`Gallery ${idx}`} />
+                    </div>
+                  ))}
+                </div>
+              )}
+              {p.videos && p.videos.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">Product Demonstrations</h3>
+                  <div className="grid grid-cols-1 gap-4">
+                    {p.videos.map((vid, idx) => {
+                      const vUrl = vid.url.startsWith('http')
+                        ? vid.url
+                        : `${api.defaults.baseURL.replace('/api/v1', '')}/storage/${vid.url}`;
+                      return (
+                        <div key={vid.id || idx} className="rounded-[1.5rem] overflow-hidden shadow-2xl border border-white/10 bg-black">
+                          <video controls className="w-full" playsInline>
+                            <source src={vUrl} />
+                            Your browser does not support the video tag.
+                          </video>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
+
+
 
             {/* Details Column */}
             <div className="p-6 md:p-12 flex flex-col justify-center">

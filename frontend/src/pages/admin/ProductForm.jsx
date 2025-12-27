@@ -8,8 +8,34 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
     });
     const [bulkPrice, setBulkPrice] = useState(''); // Bulk Purchase Price (Peti ka Rate)
     const [files, setFiles] = useState({ thumbnail: null, images: [], videos: [] });
+    const [previews, setPreviews] = useState({ thumbnail: null, images: [], videos: [] });
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
+
+    // Handle Local Previews
+    const handleFileChange = (type, e) => {
+        const selectedFiles = e.target.files;
+        if (!selectedFiles.length) return;
+
+        if (type === 'thumbnail') {
+            const file = selectedFiles[0];
+            setFiles(prev => ({ ...prev, thumbnail: file }));
+            setPreviews(prev => ({ ...prev, thumbnail: URL.createObjectURL(file) }));
+        } else if (type === 'images') {
+            const fileArray = Array.from(selectedFiles);
+            setFiles(prev => ({ ...prev, images: fileArray }));
+            setPreviews(prev => ({ ...prev, images: fileArray.map(f => URL.createObjectURL(f)) }));
+        } else if (type === 'videos') {
+            const fileArray = Array.from(selectedFiles);
+            setFiles(prev => ({ ...prev, videos: fileArray }));
+            setPreviews(prev => ({ ...prev, videos: fileArray.map(f => URL.createObjectURL(f)) }));
+        }
+    };
+
+    const clearSelection = (type) => {
+        setFiles(prev => ({ ...prev, [type]: type === 'thumbnail' ? null : [] }));
+        setPreviews(prev => ({ ...prev, [type]: type === 'thumbnail' ? null : [] }));
+    };
 
     useEffect(() => {
         api.get('/admin/categories').then(res => setCategories(res.data)); // use public api
@@ -247,21 +273,131 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                     )}
                 </div>
 
-                <div className="grid grid-cols-1 gap-4">
-                    <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase">Thumbnail Image</label>
-                        <input type="file" accept="image/*" className="w-full border p-2 rounded" onChange={e => setFiles({ ...files, thumbnail: e.target.files[0] })} />
-                        {product && product.thumbnail_url && <p className="text-xs text-gray-400 mt-1">Leave empty to keep current: <a href={product.thumbnail_url} target="_blank" className="text-blue-500 underline">View</a></p>}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                    {/* Thumbnail Display */}
+                    <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Thumbnail</label>
+                            {previews.thumbnail && (
+                                <button type="button" onClick={() => clearSelection('thumbnail')} className="text-[10px] text-red-500 font-bold uppercase hover:underline">Clear</button>
+                            )}
+                        </div>
+                        <div className="relative group overflow-hidden rounded-xl border aspect-square bg-gray-50 flex items-center justify-center shadow-sm">
+                            {previews.thumbnail ? (
+                                <img src={previews.thumbnail} className="w-full h-full object-cover" alt="New Thumbnail" />
+                            ) : (product && product.thumbnail_url) ? (
+                                <img src={product.thumbnail_url} className="w-full h-full object-cover" alt="Existing Thumbnail" />
+                            ) : (
+                                <span className="text-xs text-gray-400">No Thumbnail</span>
+                            )}
+                        </div>
+                        <input type="file" accept="image/*" className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100" onChange={e => handleFileChange('thumbnail', e)} />
                     </div>
-                    <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase">Gallery Images</label>
-                        <input type="file" multiple accept="image/*" className="w-full border p-2 rounded" onChange={e => setFiles({ ...files, images: e.target.files })} />
+
+                    {/* Gallery Images Display */}
+                    <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Gallery ({(product?.images?.length || 0) + previews.images.length})</label>
+                            {previews.images.length > 0 && (
+                                <button type="button" onClick={() => clearSelection('images')} className="text-[10px] text-red-500 font-bold uppercase hover:underline">Clear New</button>
+                            )}
+                        </div>
+                        <div className="flex gap-2 border rounded-xl p-2 bg-gray-50 overflow-x-auto shadow-inner h-32">
+                            {/* New Previews */}
+                            {previews.images.map((url, i) => (
+                                <div key={`new-img-${i}`} className="h-full aspect-square relative flex-shrink-0">
+                                    <img src={url} className="h-full w-full object-cover rounded-lg border shadow-sm" alt="New Gallery" />
+                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-lg">
+                                        <span className="text-white font-black text-[10px] uppercase">New</span>
+                                    </div>
+                                    <span className="absolute top-0 right-0 bg-red-600 text-white text-[8px] px-1 rounded-bl-md font-bold shadow-sm">NEW</span>
+                                </div>
+                            ))}
+                            {/* Existing Images */}
+                            {product && product.images?.map(img => (
+                                <div key={img.id} className="h-full aspect-square relative flex-shrink-0 group">
+                                    <img src={img.url} className="h-full w-full object-cover rounded-lg border shadow-sm" alt="Gallery" />
+                                </div>
+                            ))}
+                            {!previews.images.length && (!product || !product.images?.length) && (
+                                <div className="w-full h-full flex flex-col items-center justify-center italic text-xs text-gray-400">
+                                    <svg className="w-6 h-6 opacity-20 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    Empty
+                                </div>
+                            )}
+                        </div>
+                        <input type="file" multiple accept="image/*" className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100" onChange={e => handleFileChange('images', e)} />
                     </div>
-                    <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase">Product Videos</label>
-                        <input type="file" multiple accept="video/*" className="w-full border p-2 rounded" onChange={e => setFiles({ ...files, videos: e.target.files })} />
+
+                    {/* Videos Display */}
+                    <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Videos ({(product?.videos?.length || 0) + previews.videos.length})</label>
+                            {previews.videos.length > 0 && (
+                                <button type="button" onClick={() => clearSelection('videos')} className="text-[10px] text-red-500 font-bold uppercase hover:underline">Clear New</button>
+                            )}
+                        </div>
+                        <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 border rounded-xl p-3 bg-gray-50 shadow-inner" style={{ scrollbarWidth: 'auto' }}>
+                            {/* New Video Previews */}
+                            {previews.videos.map((url, i) => (
+                                <div key={`new-vid-${i}`} className="p-2 bg-white rounded-xl border border-red-100 shadow-sm relative group">
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                                            <span className="font-black text-[9px] text-red-600 uppercase tracking-tighter">Ready to upload</span>
+                                        </div>
+                                        <span className="text-[8px] text-gray-400 font-mono truncate max-w-[100px]">{files.videos[i]?.name}</span>
+                                    </div>
+                                    <video controls className="w-full rounded-lg bg-black shadow-md border border-gray-200" style={{ maxHeight: '120px' }}>
+                                        <source src={url} />
+                                    </video>
+                                </div>
+                            ))}
+
+                            {/* Existing Videos */}
+                            {product && product.videos?.map(vid => {
+                                const vUrl = vid.url.startsWith('http') ? vid.url : `${api.defaults.baseURL.replace('/api/v1', '')}/storage/${vid.url}`;
+                                return (
+                                    <div key={vid.id} className="p-2 bg-white rounded-xl border border-gray-100 shadow-sm group">
+                                        <div className="flex items-center justify-between mb-1.5 px-1">
+                                            <div className="flex items-center gap-1.5">
+                                                <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center">
+                                                    <svg className="w-3 h-3 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"></path></svg>
+                                                </div>
+                                                <span className="truncate max-w-[120px] font-bold text-[9px] text-gray-500 uppercase tracking-tight">Active Video</span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={async () => {
+                                                    if (window.confirm('Permanent Delete? This cannot be undone.')) {
+                                                        try {
+                                                            await api.delete(`/admin/products/videos/${vid.id}`);
+                                                            onSuccess();
+                                                        } catch (e) { alert('Failed to delete video'); }
+                                                    }
+                                                }}
+                                                className="text-[#991b1b] bg-red-50 hover:bg-red-100 px-2 py-1 rounded font-black uppercase text-[8px] border border-red-100 transition-colors"
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                        <video controls className="w-full rounded-lg bg-black shadow-lg" style={{ maxHeight: '100px' }}>
+                                            <source src={vUrl} />
+                                        </video>
+                                    </div>
+                                );
+                            })}
+                            {!previews.videos.length && (!product || !product.videos?.length) && (
+                                <div className="h-full flex flex-col items-center justify-center text-gray-400 py-6 italic text-xs">
+                                    <svg className="w-10 h-10 opacity-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest">No Product Videos</p>
+                                </div>
+                            )}
+                        </div>
+                        <input type="file" multiple accept="video/*" className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100" onChange={e => handleFileChange('videos', e)} />
                     </div>
                 </div>
+
 
                 <div>
                     <label className="text-xs font-bold text-gray-500 uppercase">Description</label>

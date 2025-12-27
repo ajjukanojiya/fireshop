@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 use App\Models\Product;
+use App\Models\Video;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
@@ -13,7 +14,7 @@ class ProductController extends Controller
     public function index()
     {
         // Pagination
-        $products = Product::with('category')->latest()->paginate(10);
+        $products = Product::with(['category', 'images', 'videos'])->latest()->paginate(10);
         return response()->json($products);
     }
 
@@ -32,9 +33,9 @@ class ProductController extends Controller
             'inner_unit' => 'nullable|string',
             'inner_unit_value' => 'nullable|integer',
             'is_featured' => 'nullable|boolean',
-            'thumbnail' => 'nullable|image|max:2048', // File validation
-            'images.*' => 'nullable|image|max:2048',
-            'videos.*' => 'nullable|mimes:mp4,mov,avi|max:10240',
+            'thumbnail' => 'nullable|image|max:5120', // Increased to 5MB
+            'images.*' => 'nullable|image|max:5120',
+            'videos.*' => 'nullable|mimes:mp4,mov,avi,mkv,webm|max:51200', // Increased to 50MB
         ]);
 
         $validated['slug'] = Str::slug($validated['title']) . '-' . time();
@@ -89,7 +90,9 @@ class ProductController extends Controller
             'inner_unit' => 'nullable|string',
             'inner_unit_value' => 'nullable|integer',
             'is_featured' => 'nullable|boolean',
-            'thumbnail' => 'nullable|image|max:2048',
+            'thumbnail' => 'nullable|image|max:5120',
+            'images.*' => 'nullable|image|max:5120',
+            'videos.*' => 'nullable|mimes:mp4,mov,avi,mkv,webm|max:51200',
         ]);
 
         if (isset($validated['title'])) {
@@ -121,10 +124,18 @@ class ProductController extends Controller
         return response()->json(['message' => 'Product updated', 'product' => $product]);
     }
 
+
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
         $product->delete();
         return response()->json(['message' => 'Product deleted']);
+    }
+
+    public function destroyVideo($id)
+    {
+        $video = Video::findOrFail($id);
+        $video->delete();
+        return response()->json(['message' => 'Video deleted']);
     }
 }

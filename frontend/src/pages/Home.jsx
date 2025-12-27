@@ -142,8 +142,9 @@ export default function Home() {
                             autoPlay muted loop playsInline
                             className="w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-[2000ms]"
                           >
-                            <source src={p.videos[0].url.startsWith('http') ? p.videos[0].url : `http://127.0.0.1:8000/stream/${p.videos[0].url}`} type="video/mp4" />
+                            <source src={p.videos[0].url.startsWith('http') ? p.videos[0].url : `${api.defaults.baseURL.replace('/api/v1', '')}/storage/${p.videos[0].url}`} />
                           </video>
+
                         ) : (
                           <img src={p.thumbnail_url} className="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-[2000ms]" alt={p.title} />
                         )}

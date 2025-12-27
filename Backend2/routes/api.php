@@ -56,6 +56,8 @@ Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function
     Route::get('/dashboard', [\App\Http\Controllers\API\V1\Admin\DashboardController::class, 'index']);
     
     Route::apiResource('products', \App\Http\Controllers\API\V1\Admin\ProductController::class);
+    Route::delete('products/videos/{id}', [\App\Http\Controllers\API\V1\Admin\ProductController::class, 'destroyVideo']);
+
     Route::apiResource('categories', \App\Http\Controllers\API\V1\Admin\CategoryController::class);
     Route::get('reports', [\App\Http\Controllers\API\V1\Admin\ReportController::class, 'index']);
     Route::get('orders', [\App\Http\Controllers\API\V1\Admin\OrderController::class, 'index']);
