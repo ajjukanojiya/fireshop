@@ -39,6 +39,14 @@ jobs:
               git pull origin ${{ github.ref_name }}
             fi
 
+            # --- Frontend Build ---
+            echo "Building Frontend..."
+            cd frontend
+            npm install
+            npm run build
+            cd ..
+
+            # --- Backend Setup ---
             cd Backend2
             
             # Install Composer
@@ -72,33 +80,40 @@ jobs:
             sudo chown -R www-data:www-data storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
             
-            # Nginx config
+            # --- Unified Nginx Config ---
             sudo tee /etc/nginx/sites-available/fireshop <<EOF
             server {
                 listen 80;
                 server_name ${{ secrets.EC2_IP }};
-                root /var/www/fireshop/Backend2/public;
+
+                # Serve Frontend
+                root /var/www/fireshop/frontend/dist;
+                index index.html;
+
+                location / {
+                    try_files \$uri \$uri/ /index.html;
+                }
+
+                # Serve Backend API
+                location /api {
+                    alias /var/www/fireshop/Backend2/public;
+                    try_files \$uri \$uri/ /index.php?\$query_string;
+
+                    location ~ \.php\$ {
+                        fastcgi_pass unix:/var/run/php/php8.4-fpm.sock;
+                        fastcgi_param SCRIPT_FILENAME /var/www/fireshop/Backend2/public/index.php;
+                        include fastcgi_params;
+                    }
+                }
+
+                # Serve Backend Storage
+                location /storage {
+                    alias /var/www/fireshop/Backend2/storage/app/public;
+                }
 
                 add_header X-Frame-Options "SAMEORIGIN";
                 add_header X-Content-Type-Options "nosniff";
-
-                index index.php;
-
                 charset utf-8;
-
-                location / {
-                    try_files \$uri \$uri/ /index.php?\$query_string;
-                }
-
-                location ~ \.php\$ {
-                    fastcgi_pass unix:/var/run/php/php8.4-fpm.sock;
-                    fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
-                    include fastcgi_params;
-                }
-
-                location ~ /\.(?!well-known).* {
-                    deny all;
-                }
             }
             EOF
 
