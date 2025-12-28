@@ -81,7 +81,8 @@ jobs:
             # Fix for subpath hosting: Create a symlink so Nginx 'root' works for /api
             mkdir -p public
             cd public
-            ln -sf . api
+            rm -rf api
+            ln -s . api
             cd ..
             
             php artisan migrate --force
