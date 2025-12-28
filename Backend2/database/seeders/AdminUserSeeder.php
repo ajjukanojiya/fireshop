@@ -16,11 +16,11 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         User::updateOrCreate(
-            ['email' => 'admin@fireshop.com'],
+            ['phone' => '9999999990'],
             [
                 'name' => 'Super Admin',
+                'email' => 'admin@fireshop.com',
                 'password' => Hash::make('password'),
-                'phone' => '9999999990',
                 'role' => 'admin',
                 'email_verified_at' => now(),
             ]
