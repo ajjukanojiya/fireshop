@@ -39,6 +39,13 @@ jobs:
               git pull origin ${{ github.ref_name }}
             fi
 
+            # --- Install Node.js ---
+            if ! [ -x "$(command -v node)" ]; then
+              echo "Installing Node.js..."
+              curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+              sudo apt-get install -y nodejs
+            fi
+
             # --- Frontend Build ---
             echo "Building Frontend..."
             cd frontend
