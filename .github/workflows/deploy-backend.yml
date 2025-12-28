@@ -77,6 +77,12 @@ jobs:
             else
               sed -i "s/APP_DEBUG=false/APP_DEBUG=true/" .env
             fi
+
+            # Fix for subpath hosting: Create a symlink so Nginx 'root' works for /api
+            mkdir -p public
+            cd public
+            ln -sf . api
+            cd ..
             
             php artisan migrate --force
             php artisan storage:link
@@ -101,20 +107,18 @@ jobs:
                     try_files \$uri \$uri/ /index.html;
                 }
 
-                # Serve Backend API
+                # Serve Backend API (Standard root + symlink approach)
                 location /api {
-                    alias /var/www/fireshop/Backend2/public;
-                    try_files \$uri \$uri/ @api;
+                    root /var/www/fireshop/Backend2/public;
+                    index index.php;
+                    try_files \$uri \$uri/ /api/index.php?\$query_string;
 
                     location ~ \.php\$ {
                         include fastcgi_params;
                         fastcgi_pass unix:/var/run/php/php8.4-fpm.sock;
-                        fastcgi_param SCRIPT_FILENAME \$request_filename;
+                        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+                        fastcgi_param REQUEST_URI \$request_uri;
                     }
-                }
-
-                location @api {
-                    rewrite ^/api/(.*)$ /api/index.php?\$query_string last;
                 }
 
                 # Serve Backend Storage
