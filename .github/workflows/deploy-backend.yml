@@ -103,14 +103,18 @@ jobs:
 
                 # Serve Backend API
                 location /api {
-                    root /var/www/fireshop/Backend2/public;
-                    try_files \$uri \$uri/ /index.php?\$query_string;
+                    alias /var/www/fireshop/Backend2/public;
+                    try_files \$uri \$uri/ @api;
 
                     location ~ \.php\$ {
                         include fastcgi_params;
                         fastcgi_pass unix:/var/run/php/php8.4-fpm.sock;
-                        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+                        fastcgi_param SCRIPT_FILENAME \$request_filename;
                     }
+                }
+
+                location @api {
+                    rewrite ^/api/(.*)$ /api/index.php?\$query_string last;
                 }
 
                 # Serve Backend Storage
