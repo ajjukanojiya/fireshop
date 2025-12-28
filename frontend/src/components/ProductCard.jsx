@@ -84,7 +84,7 @@ export default function ProductCard({ product, onQuickView }) {
             </div>
             {stock > 0 && (
               <div className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${isLowStock ? 'text-amber-600 bg-amber-50' : 'text-teal-600 bg-teal-50'}`}>
-                {isLowStock ? 'Low Stock' : 'In Stock'}
+                {stock} {product.inner_unit || 'Packets'}
               </div>
             )}
           </div>

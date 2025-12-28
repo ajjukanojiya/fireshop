@@ -47,6 +47,10 @@ export default function AdminOrders() {
     const [deliveryBoyId, setDeliveryBoyId] = useState("");
     const [deliveryBoys, setDeliveryBoys] = useState([]);
 
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [selectedOrderItems, setSelectedOrderItems] = useState([]);
+    const [selectedOrderDetails, setSelectedOrderDetails] = useState(null);
+
     const loadDeliveryBoys = async () => {
         try {
             const res = await api.get('/admin/users?role=delivery_boy');
@@ -155,27 +159,41 @@ export default function AdminOrders() {
                                     </span>
                                 </td>
                                 <td className="px-6 py-4">
-                                    {/* Check if delivery exists */}
-                                    {order.delivery && order.delivery.delivery_boy ? (
-                                        <div className="flex flex-col items-start gap-1">
-                                            <div className="flex items-center gap-1 text-xs font-bold text-green-700 bg-green-50 px-2 py-1 rounded border border-green-100">
-                                                <span>✓ {order.delivery.delivery_boy.name}</span>
-                                            </div>
-                                            <button
-                                                onClick={() => openAssignModal(order.id)}
-                                                className="text-[10px] text-gray-400 hover:text-blue-600 underline"
-                                            >
-                                                Re-assign
-                                            </button>
-                                        </div>
-                                    ) : (
+                                    <div className="flex flex-col gap-2">
                                         <button
-                                            onClick={() => openAssignModal(order.id)}
-                                            className="text-xs bg-purple-50 text-purple-600 border border-purple-200 px-2 py-1 rounded hover:bg-purple-100"
+                                            onClick={() => {
+                                                setSelectedOrderItems(order.items || []);
+                                                setSelectedOrderDetails(order);
+                                                setShowDetailsModal(true);
+                                            }}
+                                            className="text-[10px] font-black uppercase text-blue-600 bg-blue-50 border border-blue-100 px-2 py-1 rounded hover:bg-blue-100 transition-colors text-center"
                                         >
-                                            Assign
+                                            View Details
                                         </button>
-                                    )}
+                                        <div className="flex flex-col">
+                                            {/* Check if delivery exists */}
+                                            {order.delivery && order.delivery.delivery_boy ? (
+                                                <div className="flex flex-col items-start gap-1">
+                                                    <div className="flex items-center gap-1 text-xs font-bold text-green-700 bg-green-50 px-2 py-1 rounded border border-green-100">
+                                                        <span>✓ {order.delivery.delivery_boy.name}</span>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => openAssignModal(order.id)}
+                                                        className="text-[10px] text-gray-400 hover:text-blue-600 underline"
+                                                    >
+                                                        Re-assign
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => openAssignModal(order.id)}
+                                                    className="text-xs bg-purple-50 text-purple-600 border border-purple-200 px-2 py-1 rounded hover:bg-purple-100"
+                                                >
+                                                    Assign
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                     <select
@@ -195,6 +213,65 @@ export default function AdminOrders() {
                     </tbody>
                 </table>
             </div>
+
+            {/* Order Details Modal */}
+            {showDetailsModal && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+                    <div className="bg-white rounded-[2rem] p-8 w-full max-w-2xl shadow-2xl animate-fade-in border border-gray-100">
+                        <div className="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 className="font-black text-2xl text-slate-900 tracking-tighter">Order #{selectedOrderDetails?.id} Items</h3>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
+                                    Customer: {selectedOrderDetails?.user?.name || selectedOrderDetails?.guest_phone || 'Guest'}
+                                </p>
+                            </div>
+                            <button onClick={() => setShowDetailsModal(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+
+                        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                            {selectedOrderItems.map((item, idx) => (
+                                <div key={item.id || idx} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <div className="w-16 h-16 bg-white rounded-xl border border-slate-200 overflow-hidden flex-shrink-0">
+                                        <img src={item.product?.thumbnail_url} alt={item.product?.title} className="w-full h-full object-cover" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="font-black text-slate-800 leading-tight">{item.product?.title}</h4>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase bg-white px-2 py-0.5 rounded border border-slate-200">
+                                                {item.product?.inner_unit || 'Packet'}
+                                            </span>
+                                            <span className="text-xs font-bold text-slate-500">₹{item.price?.toLocaleString()} / {item.product?.inner_unit || 'Packet'}</span>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Quantity</div>
+                                        <div className="text-xl font-black text-slate-900">{item.quantity}</div>
+                                    </div>
+                                    <div className="text-right min-w-[80px]">
+                                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Total</div>
+                                        <div className="text-lg font-black text-red-600">₹{(item.quantity * item.price).toLocaleString()}</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center">
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Grand Total</span>
+                                <span className="text-3xl font-black text-slate-900">₹{selectedOrderDetails?.total_amount?.toLocaleString()}</span>
+                            </div>
+                            <button
+                                onClick={() => setShowDetailsModal(false)}
+                                className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-red-600 transition-all shadow-xl shadow-slate-200 active:scale-95"
+                            >
+                                Close Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Assignment Modal */}
             {showAssignModal && (

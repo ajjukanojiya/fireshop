@@ -105,7 +105,13 @@ export default function Product() {
                 </span>
               </div>
               <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4 tracking-tighter">{p.title}</h1>
-              <div className="text-3xl font-black text-[#991b1b] mb-8">₹ {p.price.toLocaleString()}</div>
+              <div className="text-3xl font-black text-[#991b1b] mb-2">₹ {p.price.toLocaleString()}</div>
+
+              <div className="mb-8">
+                <span className={`px-3 py-1 rounded-lg text-xs font-black uppercase tracking-widest ${p.stock > 0 ? 'text-teal-600 bg-teal-50 border border-teal-100' : 'text-red-600 bg-red-50 border border-red-100'}`}>
+                  {p.stock > 0 ? `${p.stock} ${p.inner_unit || 'Packets'} Available` : 'Out of Stock'}
+                </span>
+              </div>
 
               <p className="text-gray-600 leading-relaxed mb-8 text-lg">{p.description || "No description available for this product."}</p>
 
