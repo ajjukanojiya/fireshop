@@ -21,12 +21,15 @@ export default function Home() {
           api.get('/categories')
         ]);
 
-        const list = prodRes.data.data || prodRes.data;
-        setProducts(list || []);
+        const list = prodRes.data?.data || prodRes.data;
+        setProducts(Array.isArray(list) ? list : []);
 
-        // Use fetched categories, fall back to derived if empty/fail (optional, but better to trust API)
-        const cats = catRes.data.map(c => c.name);
-        setCategories(cats);
+        const catData = catRes.data?.data || catRes.data;
+        if (Array.isArray(catData)) {
+          setCategories(catData.map(c => c.name));
+        } else {
+          setCategories([]);
+        }
 
       } catch (e) { console.error("Failed to load data", e); }
     })();

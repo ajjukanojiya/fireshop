@@ -93,7 +93,7 @@ jobs:
                 listen 80;
                 server_name ${{ secrets.EC2_IP }};
 
-                # Serve Frontend
+                # Serve Frontend by default
                 root /var/www/fireshop/frontend/dist;
                 index index.html;
 
@@ -103,13 +103,13 @@ jobs:
 
                 # Serve Backend API
                 location /api {
-                    alias /var/www/fireshop/Backend2/public;
+                    root /var/www/fireshop/Backend2/public;
                     try_files \$uri \$uri/ /index.php?\$query_string;
 
                     location ~ \.php\$ {
-                        fastcgi_pass unix:/var/run/php/php8.4-fpm.sock;
-                        fastcgi_param SCRIPT_FILENAME /var/www/fireshop/Backend2/public/index.php;
                         include fastcgi_params;
+                        fastcgi_pass unix:/var/run/php/php8.4-fpm.sock;
+                        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
                     }
                 }
 

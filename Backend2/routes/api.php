@@ -112,7 +112,7 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function(){
         Route::get('/order-success/{orderId}', [OrderController::class, 'orderSuccess']);
         Route::get('/my-orders', [OrderController::class, 'myOrders']);
         Route::get('/wallet', [\App\Http\Controllers\API\V1\WalletController::class, 'index']);
-        Route::post('orders/create-guest',[OrdersController::class,'createGuest']);
+        // Route::post('orders/create-guest',[OrderController::class,'createGuest']); // Fixed typo from OrdersController
         
         // Razorpay Payment Routes
         Route::post('/create-razorpay-order', [\App\Http\Controllers\API\V1\Payment\RazorpayController::class, 'createOrder']);
