@@ -40,10 +40,12 @@ class AuthController extends Controller
         // } catch (\Throwable $e) {
         //     Log::error("Twilio error: ".$e->getMessage());
         // }
-        return response()->json(['message'=>$otp]);
-
-        $exists = User::where('phone',$phone)->exists();
-        return response()->json(['message'=>'OTP sent','user_exists'=>$exists,'guest_token'=>$guestToken]);
+        return response()->json([
+            'message' => 'OTP sent',
+            'otp' => $otp,
+            'user_exists' => User::where('phone',$phone)->exists(),
+            'guest_token' => $guestToken
+        ]);
     }
 
     public function verifyOtp(Request $r)

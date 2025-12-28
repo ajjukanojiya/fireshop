@@ -42,8 +42,16 @@ export default function Login() {
     if (!phone) return setMsg("Enter phone");
     setLoading(true); setMsg(null);
     try {
-      await api.post('/auth/send-otp', { phone });
-      navigate(`/verify-otp?phone=${encodeURIComponent(phone)}`);
+      const res = await api.post('/auth/send-otp', { phone });
+      const otpSent = res.data.otp;
+      if (otpSent) {
+        setMsg(`OTP sent successfully: ${otpSent}`);
+        setTimeout(() => {
+          navigate(`/verify-otp?phone=${encodeURIComponent(phone)}`);
+        }, 2000);
+      } else {
+        navigate(`/verify-otp?phone=${encodeURIComponent(phone)}`);
+      }
     } catch (e) {
       setMsg(e?.response?.data?.message || 'Failed to send OTP');
     } finally { setLoading(false); }

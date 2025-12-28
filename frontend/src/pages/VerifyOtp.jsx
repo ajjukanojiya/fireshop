@@ -132,7 +132,7 @@ export default function VerifyOtp() {
           <div className="text-center lg:text-left">
             <h2 className="text-3xl font-bold text-gray-900">Enter OTP</h2>
             <p className="mt-2 text-gray-500">
-              We've sent a 6-digit code to <span className="font-bold text-gray-900">{phone}</span>
+              We've sent a 4-digit code to <span className="font-bold text-gray-900">{phone}</span>
             </p>
           </div>
 
@@ -142,8 +142,8 @@ export default function VerifyOtp() {
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
                 type="text"
-                maxLength={6}
-                placeholder="• • • • • •"
+                maxLength={4}
+                placeholder="• • • •"
                 className="w-full text-center text-3xl tracking-[1em] font-bold py-4 border-b-2 border-gray-200 focus:border-black outline-none transition-colors"
                 autoFocus
               />
