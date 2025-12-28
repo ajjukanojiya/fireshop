@@ -95,11 +95,17 @@ jobs:
             sudo chown -R www-data:www-data storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
             
+            # Increase PHP upload limits
+            sudo sed -i 's/upload_max_filesize = .*/upload_max_filesize = 100M/' /etc/php/8.4/fpm/php.ini
+            sudo sed -i 's/post_max_size = .*/post_max_size = 100M/' /etc/php/8.4/fpm/php.ini
+            sudo systemctl restart php8.4-fpm
+            
             # --- Unified Nginx Config ---
             sudo tee /etc/nginx/sites-available/fireshop <<EOF
             server {
                 listen 80;
                 server_name ${{ secrets.EC2_IP }};
+                client_max_body_size 100M;
 
                 # Serve Frontend by default
                 root /var/www/fireshop/frontend/dist;
