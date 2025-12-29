@@ -47,7 +47,7 @@ export default function MobileHeader() {
 
                 <div className="flex items-center gap-1">
                     {/* User Icon */}
-                    <Link to={user ? "/my-orders" : "/login"} className="p-2 text-white/60 hover:text-[#991b1b] transition-colors">
+                    <Link to="/account" className="p-2 text-white/60 hover:text-[#991b1b] transition-colors">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>

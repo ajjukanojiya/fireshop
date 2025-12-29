@@ -28,7 +28,7 @@ export default function BottomNav() {
             )
         },
         {
-            path: user ? '/my-orders' : '/login',
+            path: '/account',
             label: user ? 'Account' : 'Sign In',
             icon: (
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,13 +46,22 @@ export default function BottomNav() {
                         key={item.path}
                         to={item.path}
                         className={({ isActive }) =>
-                            `flex flex-col items-center justify-center w-full h-full transition-all duration-300 ${isActive ? 'text-[#991b1b] scale-110 drop-shadow-[0_0_8px_rgba(153,27,27,0.5)]' : 'text-white/40 hover:text-white/60'
+                            `flex flex-col items-center justify-center w-full h-full transition-all duration-300 relative ${isActive ? 'text-[#991b1b] scale-110 drop-shadow-[0_0_8px_rgba(153,27,27,0.5)]' : 'text-white/40 hover:text-white/60'
                             }`
                         }
                     >
                         {({ isActive }) => (
                             <>
-                                {item.icon}
+                                <div className="relative">
+                                    {item.icon}
+                                    {/* Show pulse badge for Sign In tab when user is not logged in */}
+                                    {item.path === '/account' && !user && (
+                                        <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#991b1b] opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-3 w-3 bg-[#991b1b]"></span>
+                                        </span>
+                                    )}
+                                </div>
                                 <span className={`text-[10px] font-black mt-1 uppercase tracking-tighter transition-all ${isActive ? 'opacity-100' : 'opacity-60'}`}>
                                     {item.label}
                                 </span>

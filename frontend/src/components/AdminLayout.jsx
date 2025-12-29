@@ -44,10 +44,10 @@ export default function AdminLayout() {
     ];
 
     const mobileMenuItems = [
-        { label: 'Home', path: '/admin/dashboard', icon: '📊' },
+        { label: 'Dashboard', path: '/admin/dashboard', icon: '📊' },
         { label: 'Orders', path: '/admin/orders', icon: '📦' },
         { label: 'Products', path: '/admin/products', icon: '🏷️' },
-        { label: 'Finance', path: '/admin/online-payments', icon: '💳' },
+        { label: 'More', path: '/admin/categories', icon: '⋯' },
     ];
 
     const pageTitle = location.pathname.split('/')[2]?.replace('-', ' ') || 'Dashboard';
