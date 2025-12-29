@@ -13,6 +13,7 @@ import MyAddresses from './pages/MyAddresses';
 import OrderConfirmation from "./pages/OrderConfirmation";
 import OrderSuccess from "./pages/OrderSuccess";
 import OrderDetail from "./pages/OrderDetail";
+import Categories from "./pages/Categories";
 import Header from "./components/Header";
 import MainLayout from "./components/MainLayout";
 import AdminLayout from "./components/AdminLayout";
@@ -49,6 +50,7 @@ export default function App() {
           <Route path="/my-wallet" element={<MyWallet />} />
           <Route path="/my-addresses" element={<MyAddresses />} />
           <Route path="/my-orders/:id" element={<OrderDetail />} />
+          <Route path="/categories" element={<Categories />} />
         </Route>
 
         <Route path="/test-panel" element={<TestPanel />} />

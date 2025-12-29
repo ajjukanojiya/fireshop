@@ -13,18 +13,22 @@ export default function MainLayout() {
         return <Outlet />;
     }
 
+    // Check if we should show mobile chrome (header/nav)
+    // Usually we show it everywhere except maybe full-screen video pages
+
     return (
-        <div className="min-h-screen bg-white">
-            {/* Desktop Header */}
-            <div className="hidden lg:block">
+        <div className="min-h-screen bg-[#fcfcfc] flex flex-col">
+            {/* Desktop Header - Hidden on mobile */}
+            <div className="hidden lg:block sticky top-0 z-[60]">
                 <Header />
             </div>
 
-            {/* Mobile Header */}
+            {/* Mobile Header - Specific to mobile view */}
             <MobileHeader />
 
-            {/* Main Content */}
-            <main className="pt-16 pb-20 lg:pt-0 lg:pb-0">
+            {/* Main Content Area */}
+            {/* We add pt-16 for the mobile header and no padding for desktop since it handles its own sticky spacing */}
+            <main className="flex-1 lg:pt-0 pt-16 pb-20 lg:pb-0 transition-all duration-300">
                 <Outlet />
             </main>
 

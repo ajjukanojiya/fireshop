@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import api from "../api/api";
-import Header from "../components/Header";
+// Header removed
 
 export default function OrderDetail() {
   const { id } = useParams();
@@ -67,7 +67,6 @@ export default function OrderDetail() {
 
   if (loading) return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
       <div className="flex-1 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900"></div>
       </div>
@@ -76,7 +75,6 @@ export default function OrderDetail() {
 
   if (error || !order) return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
       <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
         <div className="text-red-600 font-bold text-lg mb-2">Failed to load order</div>
         <p className="text-gray-500 mb-6">{error || "Order not found"}</p>
@@ -101,7 +99,6 @@ export default function OrderDetail() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
-      <Header />
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-6 flex items-center gap-2 text-sm text-gray-500">

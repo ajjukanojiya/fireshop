@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../api/api";
 import { useNavigate, Link } from "react-router-dom";
 import { initGoogle, renderGoogleButton } from "../utils/googleAuth";
-import Header from "../components/Header";
+// Header removed
 
 export default function Login() {
   const [phone, setPhone] = useState("");

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/api';
-import Header from '../components/Header';
+// Header removed
 import { useToast } from '../contexts/ToastContext';
 
 export default function MyAddresses() {
@@ -104,7 +104,6 @@ export default function MyAddresses() {
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50">
-                <Header />
                 <div className="flex items-center justify-center h-96">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
                 </div>
@@ -114,7 +113,6 @@ export default function MyAddresses() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <Header />
             <div className="max-w-4xl mx-auto px-4 py-8">
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="text-3xl font-bold text-gray-900">My Addresses</h1>

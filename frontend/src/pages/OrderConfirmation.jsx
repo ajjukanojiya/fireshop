@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/api";
-import Header from "../components/Header";
+// Header removed
 
 export default function OrderConfirmation() {
   const { orderId } = useParams();
@@ -27,24 +27,20 @@ export default function OrderConfirmation() {
     if (orderId) fetchOrder();
   }, [orderId]);
 
-  if (loading) return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
-      <div className="flex-1 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-      </div>
+  <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="flex-1 flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
     </div>
+  </div>
   );
 
-  if (error) return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
-      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-        <div className="text-red-600 text-xl font-bold mb-2">Oops! Something went wrong.</div>
-        <div className="text-gray-600 mb-6">{error}</div>
-        <button onClick={() => navigate('/')} className="bg-gray-900 text-white px-6 py-2 rounded-lg">Go Home</button>
-      </div>
+  <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+      <div className="text-red-600 text-xl font-bold mb-2">Oops! Something went wrong.</div>
+      <div className="text-gray-600 mb-6">{error}</div>
+      <button onClick={() => navigate('/')} className="bg-gray-900 text-white px-6 py-2 rounded-lg">Go Home</button>
     </div>
+  </div>
   );
 
   if (!order) return <div className="text-center mt-12">Order not found</div>;
@@ -54,7 +50,6 @@ export default function OrderConfirmation() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
       <div className="max-w-3xl mx-auto px-4 py-12">
 
         {/* Success Card */}

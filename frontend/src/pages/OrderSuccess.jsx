@@ -1,9 +1,6 @@
-import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { sendOtpForGuest, verifyOtpAndClaim } from '../services/authService';
-import { useUser } from '../contexts/UserContext';
-import { useCart } from '../contexts/CartContext';
-import Header from '../components/Header';
+// Header removed
 import api from '../api/api';
 
 export default function OrderSuccess() {
@@ -104,7 +101,6 @@ export default function OrderSuccess() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
       <div className="flex flex-col items-center justify-center p-4 py-12">
         <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
           {/* Success Header Area */}

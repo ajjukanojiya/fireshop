@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/api";
 import { useCart } from "../contexts/CartContext";
 import { useToast } from "../contexts/ToastContext";
-import Header from "../components/Header";
+// Header removed - managed by MainLayout
 
 export default function Product() {
   const { id } = useParams();
@@ -45,7 +44,6 @@ export default function Product() {
 
   if (!p) return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#991b1b]"></div>
       </div>
@@ -55,7 +53,6 @@ export default function Product() {
 
   return (
     <div className="min-h-screen bg-[#fcfcfc]">
-      <Header />
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-8">

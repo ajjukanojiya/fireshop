@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
-import Header from "../components/Header";
+// Header removed
 
 export default function MyWallet() {
     const [balance, setBalance] = useState(0);
@@ -23,7 +23,6 @@ export default function MyWallet() {
 
     if (loading) return (
         <div className="min-h-screen bg-gray-50">
-            <Header />
             <div className="flex justify-center items-center h-[80vh]">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
             </div>
@@ -32,7 +31,6 @@ export default function MyWallet() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <Header />
             <div className="max-w-4xl mx-auto p-6">
                 <h1 className="text-3xl font-bold text-gray-900 mb-6">My Wallet</h1>
 

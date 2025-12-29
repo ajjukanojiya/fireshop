@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
-import Header from "../components/Header";
+// Header removed
 
 export default function MyOrders() {
   const [orders, setOrders] = useState(null);
@@ -39,7 +39,6 @@ export default function MyOrders() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
         <div className="p-4 md:p-8">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl font-bold text-gray-900 mb-8">My Orders</h2>
@@ -72,7 +71,6 @@ export default function MyOrders() {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
         <div className="flex items-center justify-center p-4 h-[calc(100vh-80px)]">
           <div className="text-center">
             <div className="text-red-500 text-5xl mb-4">⚠️</div>
@@ -89,7 +87,6 @@ export default function MyOrders() {
   if (!orders || orders.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
         <div className="flex flex-col items-center justify-center p-4 text-center h-[calc(100vh-80px)]">
           <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mb-6">
             <svg className="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -112,7 +109,6 @@ export default function MyOrders() {
   // --- Content State ---
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
       <div className="p-4 md:p-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-8">
@@ -191,8 +187,8 @@ export default function MyOrders() {
 
                     {order.refund && (
                       <span className={`px-3 py-1 rounded text-sm font-medium border ${order.refund.status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' :
-                          order.refund.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' :
-                            'bg-yellow-50 text-yellow-700 border-yellow-200'
+                        order.refund.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' :
+                          'bg-yellow-50 text-yellow-700 border-yellow-200'
                         }`}>
                         {order.refund.status === 'approved' ? 'Refunded' :
                           order.refund.status === 'rejected' ? 'Refund Rejected' :

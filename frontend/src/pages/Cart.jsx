@@ -1,8 +1,5 @@
-import React from "react";
-import { useCart } from "../contexts/CartContext";
-import { useToast } from "../contexts/ToastContext";
 import { Link, useNavigate } from "react-router-dom";
-import Header from "../components/Header";
+// Header removed - managed by MainLayout
 
 export default function CartPage() {
   const { items, total, loading, updateCartItem, removeFromCart, clearCart } = useCart();
@@ -34,7 +31,6 @@ export default function CartPage() {
 
   if (loading) return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
       <div className="flex-1 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
       </div>
@@ -43,7 +39,6 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
       <div className="max-w-6xl mx-auto px-4 py-6 md:py-10">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-8">Shopping Cart</h1>
 

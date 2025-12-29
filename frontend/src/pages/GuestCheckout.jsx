@@ -90,7 +90,6 @@ export default function GuestCheckout() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center gap-2 mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Guest Checkout</h1>
