@@ -1,5 +1,8 @@
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { sendOtpForGuest, verifyOtpAndClaim } from '../services/authService';
+import { useUser } from '../contexts/UserContext';
+import { useCart } from '../contexts/CartContext';
 // Header removed
 import api from '../api/api';
 

@@ -1,4 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
+import { useCart } from "../contexts/CartContext";
+import { useToast } from "../contexts/ToastContext";
 // Header removed - managed by MainLayout
 
 export default function CartPage() {

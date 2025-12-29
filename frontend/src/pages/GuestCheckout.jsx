@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../api/api";
 import { useNavigate, Link } from "react-router-dom";
-import Header from "../components/Header";
+// Header removed
 import { useToast } from "../contexts/ToastContext";
 
 export default function GuestCheckout() {
@@ -78,12 +78,9 @@ export default function GuestCheckout() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <Header />
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-          <h2 className="text-xl font-bold text-gray-900">Your cart is empty</h2>
-          <Link to="/" className="mt-4 text-red-600 font-medium hover:underline">Start Shopping</Link>
-        </div>
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-white rounded-2xl m-4 border border-gray-100 shadow-sm">
+        <h2 className="text-xl font-bold text-gray-900">Your cart is empty</h2>
+        <Link to="/" className="mt-4 text-red-600 font-medium hover:underline">Start Shopping</Link>
       </div>
     );
   }

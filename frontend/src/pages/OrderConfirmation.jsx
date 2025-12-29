@@ -27,20 +27,22 @@ export default function OrderConfirmation() {
     if (orderId) fetchOrder();
   }, [orderId]);
 
-  <div className="min-h-screen bg-gray-50 flex flex-col">
-    <div className="flex-1 flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+  if (loading) return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="flex-1 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      </div>
     </div>
-  </div>
   );
 
-  <div className="min-h-screen bg-gray-50 flex flex-col">
-    <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-      <div className="text-red-600 text-xl font-bold mb-2">Oops! Something went wrong.</div>
-      <div className="text-gray-600 mb-6">{error}</div>
-      <button onClick={() => navigate('/')} className="bg-gray-900 text-white px-6 py-2 rounded-lg">Go Home</button>
+  if (error) return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+        <div className="text-red-600 text-xl font-bold mb-2">Oops! Something went wrong.</div>
+        <div className="text-gray-600 mb-6">{error}</div>
+        <button onClick={() => navigate('/')} className="bg-gray-900 text-white px-6 py-2 rounded-lg">Go Home</button>
+      </div>
     </div>
-  </div>
   );
 
   if (!order) return <div className="text-center mt-12">Order not found</div>;
