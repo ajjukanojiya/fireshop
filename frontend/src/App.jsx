@@ -14,6 +14,7 @@ import OrderConfirmation from "./pages/OrderConfirmation";
 import OrderSuccess from "./pages/OrderSuccess";
 import OrderDetail from "./pages/OrderDetail";
 import Header from "./components/Header";
+import MainLayout from "./components/MainLayout";
 import AdminLayout from "./components/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminOrders from "./pages/admin/Orders";
@@ -33,22 +34,23 @@ export default function App() {
   return (
     <ToastProvider>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/product/:id" element={<Product />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Register />} />
-        <Route path="/verify-otp" element={<VerifyOtp />} />
-        <Route path="/guest-checkout" element={<GuestCheckout />} />
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
-        {/* <Route path="/orders" element={<MyOrders />} /> */}
-        <Route path="/order/:orderId" element={<OrderConfirmation />} />
-        <Route path="/order-success/:orderId" element={<OrderSuccess />} />
-        <Route path="/my-orders" element={<MyOrders />} />
-        <Route path="/my-wallet" element={<MyWallet />} />
-        <Route path="/my-addresses" element={<MyAddresses />} />
-        <Route path="/my-orders/:id" element={<OrderDetail />} />
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/product/:id" element={<Product />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Register />} />
+          <Route path="/verify-otp" element={<VerifyOtp />} />
+          <Route path="/guest-checkout" element={<GuestCheckout />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/order/:orderId" element={<OrderConfirmation />} />
+          <Route path="/order-success/:orderId" element={<OrderSuccess />} />
+          <Route path="/my-orders" element={<MyOrders />} />
+          <Route path="/my-wallet" element={<MyWallet />} />
+          <Route path="/my-addresses" element={<MyAddresses />} />
+          <Route path="/my-orders/:id" element={<OrderDetail />} />
+        </Route>
+
         <Route path="/test-panel" element={<TestPanel />} />
         <Route path="/delivery/dashboard" element={<DeliveryDashboard />} />
 
@@ -65,6 +67,7 @@ export default function App() {
           <Route path="reports" element={<AdminReports />} />
           <Route path="refunds" element={<AdminRefunds />} />
         </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </ToastProvider>
   );

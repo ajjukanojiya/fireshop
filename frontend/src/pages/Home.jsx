@@ -61,10 +61,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#fcfcfc] text-slate-900 selection:bg-red-100 selection:text-red-600">
-      <Header />
 
       {/* Hero Section - Ultra Premium Stage */}
-      <section className="relative min-h-[85vh] flex items-center overflow-hidden bg-[#050505] text-white">
+      <section className="relative min-h-[70vh] lg:min-h-[85vh] flex items-center overflow-hidden bg-[#050505] text-white">
         {/* Dynamic Ambient Background - Royal Ruby Tint */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[radial-gradient(circle_at_center,rgba(153,27,27,0.18)_0%,transparent_70%)] opacity-60" />
@@ -74,7 +73,7 @@ export default function Home() {
           <div className="absolute bottom-[20%] left-[5%] w-[30rem] h-[30rem] bg-slate-900/20 rounded-full blur-[120px]" />
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 relative z-10 w-full py-20 mt-10">
+        <div className="max-w-7xl mx-auto px-4 relative z-10 w-full py-10 lg:py-20">
           {featured.length > 0 ? (
             <div className="relative">
               {featured.map((p, idx) => (
@@ -92,20 +91,20 @@ export default function Home() {
                     </div>
 
                     <div className="space-y-4">
-                      <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.95] bg-gradient-to-b from-white via-white to-white/20 bg-clip-text text-transparent">
+                      <h1 className="text-4xl md:text-6xl lg:text-8xl font-black tracking-tighter leading-[0.95] bg-gradient-to-b from-white via-white to-white/20 bg-clip-text text-transparent">
                         {p.title}
                       </h1>
-                      <div className="h-1 w-24 bg-[#991b1b] rounded-full mx-auto lg:mx-0 shadow-[0_0_20px_rgba(153,27,27,0.5)]" />
+                      <div className="h-1 w-16 lg:w-24 bg-[#991b1b] rounded-full mx-auto lg:mx-0 shadow-[0_0_20px_rgba(153,27,27,0.5)]" />
                     </div>
 
-                    <p className="text-xl md:text-2xl text-white/40 max-w-xl mx-auto lg:mx-0 font-medium leading-relaxed tracking-tight">
+                    <p className="text-lg md:text-xl lg:text-2xl text-white/40 max-w-xl mx-auto lg:mx-0 font-medium leading-relaxed tracking-tight">
                       {p.description || "The pinnacle of pyrotechnic craftsmanship, designed for the most elite celebrations."}
                     </p>
 
-                    <div className="flex flex-wrap gap-6 justify-center lg:justify-start items-center pt-4">
+                    <div className="flex flex-wrap gap-4 lg:gap-6 justify-center lg:justify-start items-center pt-2 lg:pt-4">
                       <button
                         onClick={() => onQuickView(p)}
-                        className="group relative bg-white text-black px-12 py-5 rounded-[2rem] font-black text-xl transition-all hover:scale-105 active:scale-95 shadow-[0_30px_60px_rgba(255,255,255,0.1)] overflow-hidden"
+                        className="group relative bg-white text-black px-8 lg:px-12 py-4 lg:py-5 rounded-[2rem] font-black text-lg lg:text-xl transition-all hover:scale-105 active:scale-95 shadow-[0_30px_60px_rgba(255,255,255,0.1)] overflow-hidden"
                       >
                         <span className="relative z-10 flex items-center gap-3">
                           Acquire Now <span className="text-2xl transition-transform group-hover:translate-x-2">→</span>
