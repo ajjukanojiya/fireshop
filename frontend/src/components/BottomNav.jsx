@@ -54,10 +54,14 @@ export default function BottomNav() {
                             }`
                         }
                     >
-                        {item.icon}
-                        <span className={`text-[10px] font-black mt-1 uppercase tracking-tighter transition-all ${isActive ? 'opacity-100' : 'opacity-60'}`}>
-                            {item.label}
-                        </span>
+                        {({ isActive }) => (
+                            <>
+                                {item.icon}
+                                <span className={`text-[10px] font-black mt-1 uppercase tracking-tighter transition-all ${isActive ? 'opacity-100' : 'opacity-60'}`}>
+                                    {item.label}
+                                </span>
+                            </>
+                        )}
                     </NavLink>
                 ))}
             </div>
