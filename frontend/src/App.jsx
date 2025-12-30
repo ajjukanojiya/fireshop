@@ -27,6 +27,7 @@ import AdminPayments from "./pages/admin/Payments";
 import AdminOnlinePayments from "./pages/admin/OnlinePayments";
 import AdminReports from "./pages/admin/Reports";
 import AdminRefunds from "./pages/admin/Refunds";
+import AdminMore from "./pages/admin/More";
 import { ToastProvider } from "./contexts/ToastContext";
 import TestPanel from "./pages/TestPanel";
 import DeliveryDashboard from "./pages/delivery/Dashboard";
@@ -70,6 +71,7 @@ export default function App() {
           <Route path="online-payments" element={<AdminOnlinePayments />} />
           <Route path="reports" element={<AdminReports />} />
           <Route path="refunds" element={<AdminRefunds />} />
+          <Route path="more" element={<AdminMore />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
