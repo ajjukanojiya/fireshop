@@ -22,6 +22,16 @@ export default function Product() {
     })();
   }, [id]);
 
+  // Fix 1: Active Image State
+  const [activeImage, setActiveImage] = useState(null);
+
+  // Set default active image when product loads
+  useEffect(() => {
+    if (p) setActiveImage(p.thumbnail_url);
+  }, [p]);
+
+  // ... (AddToCart logic remains) ...
+
   const handleAddToCart = async () => {
     if (p.stock === 0) {
       addToast("This item is out of stock", "error");
@@ -59,18 +69,30 @@ export default function Product() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-8">
             {/* Image/Media Column */}
             <div className="p-6 md:p-8 bg-gray-50 flex flex-col gap-4">
-              <div className="aspect-[4/3] rounded-[1.5rem] overflow-hidden bg-white shadow-inner border border-slate-100">
-                <img src={p.thumbnail_url} alt={p.title} className="w-full h-full object-cover" loading="lazy" />
+              <div className="aspect-[4/3] rounded-[1.5rem] overflow-hidden bg-white shadow-inner border border-slate-100 relative group">
+                <img key={activeImage} src={activeImage || p.thumbnail_url} alt={p.title} className="w-full h-full object-cover animate-fade-in" loading="lazy" />
               </div>
-              {p.images && p.images.length > 0 && (
-                <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
-                  {p.images.map((img, idx) => (
-                    <div key={img.id || idx} className="h-20 aspect-square rounded-xl overflow-hidden border border-slate-100 flex-shrink-0 shadow-sm">
-                      <img src={img.url} className="w-full h-full object-cover" alt={`Gallery ${idx}`} />
-                    </div>
-                  ))}
-                </div>
-              )}
+
+              {/* Gallery Scroll */}
+              <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                {/* Thumbnail as first option */}
+                <button
+                  onClick={() => setActiveImage(p.thumbnail_url)}
+                  className={`h-20 aspect-square rounded-xl overflow-hidden border-2 flex-shrink-0 shadow-sm transition-all ${activeImage === p.thumbnail_url ? 'border-red-600 ring-2 ring-red-100' : 'border-slate-100 hover:border-red-200'}`}
+                >
+                  <img src={p.thumbnail_url} className="w-full h-full object-cover" alt="Main" />
+                </button>
+
+                {p.images && p.images.map((img, idx) => (
+                  <button
+                    key={img.id || idx}
+                    onClick={() => setActiveImage(img.url)}
+                    className={`h-20 aspect-square rounded-xl overflow-hidden border-2 flex-shrink-0 shadow-sm transition-all ${activeImage === img.url ? 'border-red-600 ring-2 ring-red-100' : 'border-slate-100 hover:border-red-200'}`}
+                  >
+                    <img src={img.url} className="w-full h-full object-cover" alt={`Gallery ${idx}`} />
+                  </button>
+                ))}
+              </div>
               {p.videos && p.videos.length > 0 && (
                 <div className="space-y-4">
                   <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">Product Demonstrations</h3>

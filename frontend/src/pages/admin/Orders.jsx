@@ -242,7 +242,7 @@ export default function AdminOrders() {
                                             <span className="text-[10px] font-black text-slate-400 uppercase bg-white px-2 py-0.5 rounded border border-slate-200">
                                                 {item.product?.inner_unit || 'Packet'}
                                             </span>
-                                            <span className="text-xs font-bold text-slate-500">₹{item.price?.toLocaleString()} / {item.product?.inner_unit || 'Packet'}</span>
+                                            <span className="text-xs font-bold text-slate-500">₹{Number(item.price || 0).toLocaleString()} / {item.product?.inner_unit || 'Packet'}</span>
                                         </div>
                                     </div>
                                     <div className="text-right">
@@ -251,7 +251,7 @@ export default function AdminOrders() {
                                     </div>
                                     <div className="text-right min-w-[80px]">
                                         <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Total</div>
-                                        <div className="text-lg font-black text-red-600">₹{(item.quantity * item.price).toLocaleString()}</div>
+                                        <div className="text-lg font-black text-red-600">₹{(Number(item.quantity) * Number(item.price || 0)).toLocaleString()}</div>
                                     </div>
                                 </div>
                             ))}
@@ -260,7 +260,7 @@ export default function AdminOrders() {
                         <div className="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center">
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Grand Total</span>
-                                <span className="text-3xl font-black text-slate-900">₹{selectedOrderDetails?.total_amount?.toLocaleString()}</span>
+                                <span className="text-3xl font-black text-slate-900">₹{Number(selectedOrderDetails?.total_amount || 0).toLocaleString()}</span>
                             </div>
                             <button
                                 onClick={() => setShowDetailsModal(false)}
