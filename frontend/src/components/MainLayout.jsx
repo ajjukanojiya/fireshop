@@ -4,6 +4,7 @@ import Header from './Header';
 import MobileHeader from './MobileHeader';
 import BottomNav from './BottomNav';
 import Footer from './Footer';
+import ComplianceModal from './ComplianceModal';
 
 export default function MainLayout() {
     const location = useLocation();
@@ -26,6 +27,8 @@ export default function MainLayout() {
 
             {/* Mobile Header - Specific to mobile view */}
             <MobileHeader />
+
+            <ComplianceModal />
 
             {/* Main Content Area */}
             {/* We add pt-16 for the mobile header and no padding for desktop since it handles its own sticky spacing */}

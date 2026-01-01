@@ -207,6 +207,14 @@ export default function CheckoutPage() {
       return;
     }
 
+    // STRICT COMPLIANCE: Check Pincode
+    const { checkPincode, shopConfig } = await import('../config/shopConfig');
+    if (!checkPincode(address.zip)) {
+      addToast(`Service Unavailable in Pincode ${address.zip}. (Only ${shopConfig.city} Area)`, "error");
+      alert(`Sorry! We only deliver to ${shopConfig.city} and nearby areas within ${shopConfig.maxDeliveryRange}.\n\nAllowed Pincodes: ${shopConfig.allowedPincodes.slice(0, 3).join(", ")}...`);
+      return;
+    }
+
     if (paymentMethod === 'upi') {
       if (!upiId) {
         addToast("Please enter your UPI ID", "error");
@@ -336,7 +344,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-medium text-gray-500 uppercase">Pincode</label>
-                  <input name="zip" value={address.zip} onChange={handleAddressChange} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-red-500 focus:outline-none transition-all" placeholder="400001" />
+                  <input name="zip" value={address.zip} onChange={handleAddressChange} maxLength={6} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-red-500 focus:outline-none transition-all font-mono" placeholder="482001" />
                 </div>
               </div>
             </div>
