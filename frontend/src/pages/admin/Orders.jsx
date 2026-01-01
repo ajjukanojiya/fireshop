@@ -242,7 +242,7 @@ export default function AdminOrders() {
                                             <span className="text-[10px] font-black text-slate-400 uppercase bg-white px-2 py-0.5 rounded border border-slate-200">
                                                 {item.product?.inner_unit || 'Packet'}
                                             </span>
-                                            <span className="text-xs font-bold text-slate-500">₹{Number(item.price || 0).toLocaleString()} / {item.product?.inner_unit || 'Packet'}</span>
+                                            <span className="text-xs font-bold text-slate-500">₹{Number(item.unit_price || item.price || 0).toLocaleString()} / {item.product?.inner_unit || 'Packet'}</span>
                                         </div>
                                     </div>
                                     <div className="text-right">
@@ -251,7 +251,7 @@ export default function AdminOrders() {
                                     </div>
                                     <div className="text-right min-w-[80px]">
                                         <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Total</div>
-                                        <div className="text-lg font-black text-red-600">₹{(Number(item.quantity) * Number(item.price || 0)).toLocaleString()}</div>
+                                        <div className="text-lg font-black text-red-600">₹{(Number(item.quantity) * Number(item.unit_price || item.price || 0)).toLocaleString()}</div>
                                     </div>
                                 </div>
                             ))}
