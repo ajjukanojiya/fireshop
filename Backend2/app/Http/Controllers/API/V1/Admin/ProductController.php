@@ -22,24 +22,41 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'price' => 'required|numeric',
-            'cost_price' => 'nullable|numeric',
-            'mrp' => 'nullable|numeric',
-            'stock' => 'required|integer',
             'category_id' => 'required|exists:categories,id',
             'description' => 'nullable|string',
-            'unit' => 'nullable|string',
-            'unit_value' => 'nullable|integer',
-            'inner_unit' => 'nullable|string',
-            'inner_unit_value' => 'nullable|integer',
+            // New Fields Validation
+            'brand' => 'nullable|string',
+            'size' => 'nullable|string', // Shots/Size
+            'package_type' => 'nullable|string', // Peti/Box
+            'pieces_per_packet' => 'nullable|integer|min:1',
+            'packets_per_peti' => 'nullable|integer|min:1',
+            // Prices
+            'purchase_price' => 'nullable|numeric',
+            'selling_price_peti' => 'nullable|numeric',
+            'selling_price_packet' => 'required|numeric', // Main price usually
+            'selling_price_piece' => 'nullable|numeric',
+            // Stock
+            'stock' => 'required|integer', // Total Packets (base unit for safe keeping)
+            // Attributes
+            'noise_level' => 'nullable|string',
+            'is_kids_safe' => 'nullable|boolean',
+            'use_type' => 'nullable|string',
+            'season' => 'nullable|string',
+            'hsn_code' => 'nullable|string',
+            'gst_percentage' => 'nullable|numeric',
+            'video_downloadable' => 'nullable|boolean',
             'is_featured' => 'nullable|boolean',
-            'thumbnail' => 'nullable|image|max:5120', // Increased to 5MB
+            // Media
+            'thumbnail' => 'nullable|image|max:5120',
             'images.*' => 'nullable|image|max:5120',
-            'videos.*' => 'nullable|mimes:mp4,mov,avi,mkv,webm|max:51200', // Increased to 50MB
+            'videos.*' => 'nullable|mimes:mp4,mov,avi,mkv,webm|max:51200',
         ]);
 
         $validated['slug'] = Str::slug($validated['title']) . '-' . time();
-
+        // Map 'price' to selling_price_packet for legacy compatibility if needed, or just save as is.
+        // The migration kept 'price', we should populate it with packet price for frontend consistency
+        $validated['price'] = $validated['selling_price_packet']; 
+        
         // Handle Thumbnail Upload
         if ($request->hasFile('thumbnail')) {
             $path = $request->file('thumbnail')->store('products', 'public');
@@ -79,16 +96,26 @@ class ProductController extends Controller
         
         $validated = $request->validate([
             'title' => 'sometimes|string|max:255',
-            'price' => 'sometimes|numeric',
-            'cost_price' => 'nullable|numeric',
-            'mrp' => 'nullable|numeric',
-            'stock' => 'sometimes|integer',
             'category_id' => 'sometimes|exists:categories,id',
             'description' => 'nullable|string',
-            'unit' => 'nullable|string',
-            'unit_value' => 'nullable|integer',
-            'inner_unit' => 'nullable|string',
-            'inner_unit_value' => 'nullable|integer',
+             // New Fields Validation
+            'brand' => 'nullable|string',
+            'size' => 'nullable|string',
+            'package_type' => 'nullable|string',
+            'pieces_per_packet' => 'nullable|integer|min:1',
+            'packets_per_peti' => 'nullable|integer|min:1',
+            'purchase_price' => 'nullable|numeric',
+            'selling_price_peti' => 'nullable|numeric',
+            'selling_price_packet' => 'sometimes|numeric',
+            'selling_price_piece' => 'nullable|numeric',
+            'stock' => 'sometimes|integer',
+            'noise_level' => 'nullable|string',
+            'is_kids_safe' => 'nullable|boolean',
+            'use_type' => 'nullable|string',
+            'season' => 'nullable|string',
+            'hsn_code' => 'nullable|string',
+            'gst_percentage' => 'nullable|numeric',
+            'video_downloadable' => 'nullable|boolean',
             'is_featured' => 'nullable|boolean',
             'thumbnail' => 'nullable|image|max:5120',
             'images.*' => 'nullable|image|max:5120',
@@ -99,6 +126,10 @@ class ProductController extends Controller
             $validated['slug'] = Str::slug($validated['title']) . '-' . $product->id;
         }
 
+        if (isset($validated['selling_price_packet'])) {
+            $validated['price'] = $validated['selling_price_packet'];
+        }
+
         if ($request->hasFile('thumbnail')) {
             $path = $request->file('thumbnail')->store('products', 'public');
             $validated['thumbnail_url'] = url('storage/' . $path);
@@ -106,7 +137,7 @@ class ProductController extends Controller
 
         $product->update($validated);
 
-        // Append new images/videos (simple implementation)
+        // Append new images/videos
         if ($request->hasFile('images')) {
              foreach ($request->file('images') as $image) {
                 $path = $image->store('products', 'public');
