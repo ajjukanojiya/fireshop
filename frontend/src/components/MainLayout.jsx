@@ -34,7 +34,7 @@ export default function MainLayout() {
             </main>
 
             {/* Global Footer (Visible on all sizes) */}
-            <div>
+            <div className="pb-24 lg:pb-0">
                 <Footer />
             </div>
 

@@ -16,10 +16,10 @@ export default function Footer() {
                 {/* Contact Info - Compact */}
                 <div className="flex flex-col md:flex-row gap-2 md:gap-6 text-xs text-slate-300 font-medium">
                     <div className="flex items-center justify-center md:justify-start gap-2">
-                        <span className="text-red-500">📍</span> New Delhi, India
+                        <span className="text-red-500">📍</span> Jabalpur, India
                     </div>
                     <div className="flex items-center justify-center md:justify-start gap-2">
-                        <span className="text-red-500">📞</span> +91 98765 43210
+                        <span className="text-red-500">📞</span> +91 93031 19152
                     </div>
                     <div className="flex items-center justify-center md:justify-start gap-2">
                         <a href="mailto:support@fireshop.com" className="hover:text-white transition-colors">
