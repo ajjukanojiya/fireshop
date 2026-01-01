@@ -1,3 +1,8 @@
+import React from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import Header from './Header';
+import MobileHeader from './MobileHeader';
+import BottomNav from './BottomNav';
 import Footer from './Footer';
 
 export default function MainLayout() {
