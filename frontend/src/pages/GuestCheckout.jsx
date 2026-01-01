@@ -37,6 +37,18 @@ export default function GuestCheckout() {
       addToast("Please fill in all details", "error");
       return;
     }
+    // STRICT COMPLIANCE: Check Pincode
+    const { checkPincode, shopConfig } = await import('../config/shopConfig');
+
+    // Extract pincode from address string (last 6 digits logic or simple regex)
+    const pinMatch = address.match(/\b\d{6}\b/);
+    const pincode = pinMatch ? pinMatch[0] : null;
+
+    if (!pincode || !checkPincode(pincode)) {
+      addToast(`Service Unavailable. Please include a valid ${shopConfig.city} Pincode (e.g., 482001) in address.`, "error");
+      alert(`Delivery is restricted to ${shopConfig.city} Area within ${shopConfig.maxDeliveryRange}.\n\nPlease ensure your address contains a valid pincode from: ${shopConfig.allowedPincodes.slice(0, 3).join(", ")}...`);
+      return;
+    }
 
     setLoading(true);
 
@@ -112,8 +124,8 @@ export default function GuestCheckout() {
                   <input value={phone} onChange={e => setPhone(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-red-500 focus:outline-none transition-all" placeholder="+91 98765 43210" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-gray-500 uppercase">Delivery Address</label>
-                  <textarea value={address} onChange={e => setAddress(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-red-500 focus:outline-none transition-all" rows="3" placeholder="Full address with pincode..." />
+                  <label className="text-xs font-medium text-gray-500 uppercase">Delivery Address (Must include Pincode)</label>
+                  <textarea value={address} onChange={e => setAddress(e.target.value)} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-red-500 focus:outline-none transition-all" rows="3" placeholder="Full address including Pincode (Required for Delivery Check)..." />
                 </div>
               </div>
             </div>
