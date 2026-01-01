@@ -13,7 +13,7 @@ export default function CheckoutPage() {
   const { addToast } = useToast();
 
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('razorpay'); // razorpay, cod
+  const [paymentMethod, setPaymentMethod] = useState('cod'); // Default to COD for safety
 
   // Saved Addresses
   const [savedAddresses, setSavedAddresses] = useState([]);
@@ -356,40 +356,17 @@ export default function CheckoutPage() {
                 Payment Method
               </h2>
 
-              <div className="space-y-3">
-
-                {/* Razorpay Option */}
-                <div className={`border rounded-xl p-4 cursor-pointer transition-all ${paymentMethod === 'razorpay' ? 'border-red-500 bg-red-50/50 ring-1 ring-red-500' : 'border-gray-200 hover:border-gray-300'}`} onClick={() => setPaymentMethod('razorpay')}>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${paymentMethod === 'razorpay' ? 'border-red-600' : 'border-gray-300'}`}>
-                      {paymentMethod === 'razorpay' && <div className="w-3 h-3 bg-red-600 rounded-full"></div>}
-                    </div>
-                    <span className="font-bold text-gray-800">Razorpay (UPI, Cards, Wallets)</span>
-                    <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase ml-auto">Recommended</span>
+              {/* COD Option (Default & Only) */}
+              <div className={`border rounded-xl p-4 cursor-pointer transition-all border-red-500 bg-red-50/50 ring-1 ring-red-500`} onClick={() => setPaymentMethod('cod')}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center border-red-600`}>
+                    <div className="w-3 h-3 bg-red-600 rounded-full"></div>
                   </div>
-
-                  {paymentMethod === 'razorpay' && (
-                    <div className="mt-4 pl-8 animate-fade-in text-sm text-gray-600">
-                      <p className="mb-2">Pay securely using Credit/Debit Card, Netbanking, or UPI Apps (GPay, PhonePe).</p>
-                      <div className="flex items-center gap-2 text-xs text-green-600 font-medium bg-green-50 p-2 rounded border border-green-100">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        Secure Popup will open after clicking "Place Order"
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-
-                {/* COD Option */}
-                <div className={`border rounded-xl p-4 cursor-pointer transition-all ${paymentMethod === 'cod' ? 'border-red-500 bg-red-50/50 ring-1 ring-red-500' : 'border-gray-200 hover:border-gray-300'}`} onClick={() => setPaymentMethod('cod')}>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${paymentMethod === 'cod' ? 'border-red-600' : 'border-gray-300'}`}>
-                      {paymentMethod === 'cod' && <div className="w-3 h-3 bg-red-600 rounded-full"></div>}
-                    </div>
-                    <span className="font-bold text-gray-800">Cash on Delivery</span>
+                  <div>
+                    <span className="font-bold text-gray-800">Pay on Delivery (Cash/UPI)</span>
+                    <p className="text-xs text-slate-500 mt-1">Pay to our delivery partner when you receive the order.</p>
                   </div>
                 </div>
-
               </div>
             </div>
 
