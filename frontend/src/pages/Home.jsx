@@ -237,12 +237,7 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Footer Simple */}
-      <footer className="bg-gray-900 text-gray-400 py-12 mt-12">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <p>&copy; {new Date().getFullYear()} FireShop. All rights reserved.</p>
-        </div>
-      </footer>
+
     </div>
   );
 }

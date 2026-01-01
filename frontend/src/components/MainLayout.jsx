@@ -33,8 +33,8 @@ export default function MainLayout() {
                 <Outlet />
             </main>
 
-            {/* Desktop Footer */}
-            <div className="hidden lg:block">
+            {/* Global Footer (Visible on all sizes) */}
+            <div>
                 <Footer />
             </div>
 
