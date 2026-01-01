@@ -103,6 +103,12 @@ class CheckoutController extends Controller
                 $orderData['payment_details'] = $request->payment_details;
             }
 
+            // Compliance/Safety Log
+            if (Schema::hasColumn('orders', 'compliance_log')) {
+                // "Customer ne 01-Jan-2026 ko 2:30 PM par 'Safety Declaration' sign kiya."
+                $orderData['compliance_log'] = "Customer ne " . now()->format('d-M-Y') . " ko " . now()->format('h:i A') . " par 'Safety Declaration' sign kiya.";
+            }
+
             $order = Order::create($orderData);
 
             // create order items, decrement stock
@@ -349,6 +355,11 @@ class CheckoutController extends Controller
     // Payment Details (save JSON like upi_id etc)
     if ($r->payment_details && Schema::hasColumn('orders', 'payment_details')) {
          $orderData['payment_details'] = $r->payment_details;
+    }
+
+    // Compliance/Safety Log
+    if (Schema::hasColumn('orders', 'compliance_log')) {
+        $orderData['compliance_log'] = "Customer ne " . now()->format('d-M-Y') . " ko " . now()->format('h:i A') . " par 'Safety Declaration' sign kiya.";
     }
     
     // 3) Create order inside DB transaction (safe)

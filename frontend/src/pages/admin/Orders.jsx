@@ -231,6 +231,20 @@ export default function AdminOrders() {
                         </div>
 
                         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+
+                            {/* Legal Compliance Log */}
+                            {selectedOrderDetails?.compliance_log && (
+                                <div className="mb-6 p-4 bg-yellow-50/80 border border-yellow-100 rounded-2xl">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <span className="text-base">📜</span>
+                                        <span className="text-[10px] font-black text-yellow-700 uppercase tracking-widest">Legal Compliance Log</span>
+                                    </div>
+                                    <p className="text-xs font-semibold text-slate-700 font-mono bg-white p-3 rounded-xl border border-yellow-100 shadow-sm">
+                                        Order #{selectedOrderDetails.id}: {selectedOrderDetails.compliance_log}
+                                    </p>
+                                </div>
+                            )}
+
                             {selectedOrderItems.map((item, idx) => (
                                 <div key={item.id || idx} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
                                     <div className="w-16 h-16 bg-white rounded-xl border border-slate-200 overflow-hidden flex-shrink-0">
