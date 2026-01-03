@@ -160,6 +160,7 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (loading) return; // Prevent double submission
         setLoading(true);
 
         const payload = new FormData();
@@ -443,7 +444,7 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                             </label>
                             <div className="relative group overflow-hidden rounded-xl border-dashed border-2 border-gray-300 aspect-square bg-gray-50 flex items-center justify-center hover:bg-white transition-colors">
                                 {previews.thumbnail || product?.thumbnail_url ? (
-                                    <img src={previews.thumbnail || product?.thumbnail_url} className="w-full h-full object-cover" />
+                                    <img src={previews.thumbnail || (product?.thumbnail_url?.startsWith('http') ? product.thumbnail_url : (product?.thumbnail_url?.startsWith('/') ? product.thumbnail_url : `/storage/${product.thumbnail_url}`))} className="w-full h-full object-cover" />
                                 ) : (
                                     <span className="text-xs text-gray-400 font-bold">Upload</span>
                                 )}

@@ -27,8 +27,17 @@ export default function Product() {
 
   // Set default active image when product loads
   useEffect(() => {
-    if (p) setActiveImage(p.thumbnail_url);
+    if (p) {
+      setActiveImage(p.thumbnail_url);
+    }
   }, [p]);
+
+  const getFullUrl = (url) => {
+    if (!url) return "";
+    if (url.startsWith('http')) return url;
+    if (url.startsWith('/storage')) return url;
+    return `/storage/${url}`;
+  };
 
   // ... (AddToCart logic remains) ...
 
@@ -70,7 +79,7 @@ export default function Product() {
             {/* Image/Media Column */}
             <div className="p-6 md:p-8 bg-gray-50 flex flex-col gap-4">
               <div className="aspect-[4/3] rounded-[1.5rem] overflow-hidden bg-white shadow-inner border border-slate-100 relative group">
-                <img key={activeImage} src={activeImage || p.thumbnail_url} alt={p.title} className="w-full h-full object-cover animate-fade-in" loading="lazy" />
+                <img key={activeImage} src={getFullUrl(activeImage || p.thumbnail_url)} alt={p.title} className="w-full h-full object-cover animate-fade-in" loading="lazy" />
               </div>
 
               {/* Gallery Scroll */}
@@ -80,7 +89,7 @@ export default function Product() {
                   onClick={() => setActiveImage(p.thumbnail_url)}
                   className={`h-20 aspect-square rounded-xl overflow-hidden border-2 flex-shrink-0 shadow-sm transition-all ${activeImage === p.thumbnail_url ? 'border-red-600 ring-2 ring-red-100' : 'border-slate-100 hover:border-red-200'}`}
                 >
-                  <img src={p.thumbnail_url} className="w-full h-full object-cover" alt="Main" />
+                  <img src={getFullUrl(p.thumbnail_url)} className="w-full h-full object-cover" alt="Main" />
                 </button>
 
                 {p.images && p.images.map((img, idx) => (
@@ -89,7 +98,7 @@ export default function Product() {
                     onClick={() => setActiveImage(img.url)}
                     className={`h-20 aspect-square rounded-xl overflow-hidden border-2 flex-shrink-0 shadow-sm transition-all ${activeImage === img.url ? 'border-red-600 ring-2 ring-red-100' : 'border-slate-100 hover:border-red-200'}`}
                   >
-                    <img src={img.url} className="w-full h-full object-cover" alt={`Gallery ${idx}`} />
+                    <img src={getFullUrl(img.url)} className="w-full h-full object-cover" alt={`Gallery ${idx}`} />
                   </button>
                 ))}
               </div>
@@ -98,9 +107,7 @@ export default function Product() {
                   <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">Product Demonstrations</h3>
                   <div className="grid grid-cols-1 gap-4">
                     {p.videos.map((vid, idx) => {
-                      const vUrl = vid.url.startsWith('http')
-                        ? vid.url
-                        : `${api.defaults.baseURL.replace('/api/v1', '')}/storage/${vid.url}`;
+                      const vUrl = getFullUrl(vid.url);
                       return (
                         <div key={vid.id || idx} className="rounded-[1.5rem] overflow-hidden shadow-2xl border border-white/10 bg-black">
                           <video controls className="w-full" playsInline>

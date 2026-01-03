@@ -8,12 +8,12 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Video;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
     public function index()
     {
-        // Pagination
         $products = Product::with(['category', 'images', 'videos'])->latest()->paginate(10);
         return response()->json($products);
     }
@@ -24,20 +24,16 @@ class ProductController extends Controller
             'title' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'description' => 'nullable|string',
-            // New Fields Validation
             'brand' => 'nullable|string',
-            'size' => 'nullable|string', // Shots/Size
-            'package_type' => 'nullable|string', // Peti/Box
+            'size' => 'nullable|string',
+            'package_type' => 'nullable|string',
             'pieces_per_packet' => 'nullable|integer|min:1',
             'packets_per_peti' => 'nullable|integer|min:1',
-            // Prices
             'purchase_price' => 'nullable|numeric',
             'selling_price_peti' => 'nullable|numeric',
-            'selling_price_packet' => 'required|numeric', // Main price usually
+            'selling_price_packet' => 'required|numeric',
             'selling_price_piece' => 'nullable|numeric',
-            // Stock
-            'stock' => 'required|integer', // Total Packets (base unit for safe keeping)
-            // Attributes
+            'stock' => 'required|integer',
             'noise_level' => 'nullable|string',
             'is_kids_safe' => 'nullable|boolean',
             'use_type' => 'nullable|string',
@@ -46,38 +42,33 @@ class ProductController extends Controller
             'gst_percentage' => 'nullable|numeric',
             'video_downloadable' => 'nullable|boolean',
             'is_featured' => 'nullable|boolean',
-            // Media
             'thumbnail' => 'nullable|image|max:5120',
             'images.*' => 'nullable|image|max:5120',
             'videos.*' => 'nullable|mimes:mp4,mov,avi,mkv,webm|max:51200',
         ]);
 
         $validated['slug'] = Str::slug($validated['title']) . '-' . time();
-        // Map 'price' to selling_price_packet for legacy compatibility if needed, or just save as is.
-        // The migration kept 'price', we should populate it with packet price for frontend consistency
         $validated['price'] = $validated['selling_price_packet']; 
         
-        // Handle Thumbnail Upload
         if ($request->hasFile('thumbnail')) {
             $path = $request->file('thumbnail')->store('products', 'public');
-            $validated['thumbnail_url'] = url('storage/' . $path);
+            // Use relative path to avoid host issues
+            $validated['thumbnail_url'] = '/storage/' . $path;
         }
         
         $product = Product::create($validated);
 
-        // Handle Gallery Images
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $path = $image->store('products', 'public');
-                $product->images()->create(['url' => url('storage/' . $path)]);
+                $product->images()->create(['url' => '/storage/' . $path]);
             }
         }
 
-        // Handle Videos
         if ($request->hasFile('videos')) {
             foreach ($request->file('videos') as $video) {
                 $path = $video->store('videos', 'public');
-                $product->videos()->create(['url' => url('storage/' . $path)]);
+                $product->videos()->create(['url' => '/storage/' . $path]);
             }
         }
 
@@ -98,7 +89,6 @@ class ProductController extends Controller
             'title' => 'sometimes|string|max:255',
             'category_id' => 'sometimes|exists:categories,id',
             'description' => 'nullable|string',
-             // New Fields Validation
             'brand' => 'nullable|string',
             'size' => 'nullable|string',
             'package_type' => 'nullable|string',
@@ -122,39 +112,33 @@ class ProductController extends Controller
             'videos.*' => 'nullable|mimes:mp4,mov,avi,mkv,webm|max:51200',
         ]);
 
-        if (isset($validated['title'])) {
-            $validated['slug'] = Str::slug($validated['title']) . '-' . $product->id;
-        }
-
         if (isset($validated['selling_price_packet'])) {
             $validated['price'] = $validated['selling_price_packet'];
         }
 
         if ($request->hasFile('thumbnail')) {
             $path = $request->file('thumbnail')->store('products', 'public');
-            $validated['thumbnail_url'] = url('storage/' . $path);
+            $validated['thumbnail_url'] = '/storage/' . $path;
         }
 
         $product->update($validated);
 
-        // Append new images/videos
         if ($request->hasFile('images')) {
              foreach ($request->file('images') as $image) {
                 $path = $image->store('products', 'public');
-                $product->images()->create(['url' => url('storage/' . $path)]);
+                $product->images()->create(['url' => '/storage/' . $path]);
             }
         }
 
          if ($request->hasFile('videos')) {
             foreach ($request->file('videos') as $video) {
                 $path = $video->store('videos', 'public');
-                $product->videos()->create(['url' => url('storage/' . $path)]);
+                $product->videos()->create(['url' => '/storage/' . $path]);
             }
         }
 
         return response()->json(['message' => 'Product updated', 'product' => $product]);
     }
-
 
     public function destroy($id)
     {

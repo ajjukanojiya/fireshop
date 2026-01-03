@@ -7,6 +7,13 @@ export default function AdminProducts() {
     const [loading, setLoading] = useState(true);
     const [editingProduct, setEditingProduct] = useState(null); // null = list, 'new' = add mode, obj = edit mode
 
+    const getFullUrl = (url) => {
+        if (!url) return "";
+        if (url.startsWith('http')) return url;
+        if (url.startsWith('/storage')) return url;
+        return `/storage/${url}`;
+    };
+
     const loadProducts = async (page = 1) => {
         setLoading(true);
         try {
@@ -57,7 +64,7 @@ export default function AdminProducts() {
                         <div key={p.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-start gap-4">
                             <div className="w-20 h-20 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden border border-gray-200">
                                 {p.thumbnail_url ?
-                                    <img src={p.thumbnail_url} className="w-full h-full object-cover" alt={p.title} /> :
+                                    <img src={getFullUrl(p.thumbnail_url)} className="w-full h-full object-cover" alt={p.title} /> :
                                     <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">No Img</div>
                                 }
                             </div>
@@ -112,7 +119,7 @@ export default function AdminProducts() {
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-gray-100 rounded border flex-shrink-0">
-                                                {p.thumbnail_url && <img src={p.thumbnail_url} className="w-full h-full object-cover rounded" />}
+                                                {p.thumbnail_url && <img src={getFullUrl(p.thumbnail_url)} className="w-full h-full object-cover rounded" />}
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="font-medium text-gray-900 line-clamp-1">{p.title}</span>
