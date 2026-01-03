@@ -34,9 +34,12 @@ export default function Product() {
 
   const getFullUrl = (url) => {
     if (!url) return "";
-    if (url.startsWith('http')) return url;
-    if (url.startsWith('/storage')) return url;
-    return `/storage/${url}`;
+    // If it's a full URL to localhost, strip it to make it relative
+    let cleanUrl = url.replace(/https?:\/\/localhost:8000/g, '');
+    if (cleanUrl.startsWith('http')) return cleanUrl;
+    if (cleanUrl.startsWith('/storage')) return cleanUrl;
+    if (cleanUrl.startsWith('storage/')) return '/' + cleanUrl;
+    return `/storage/${cleanUrl}`;
   };
 
   // ... (AddToCart logic remains) ...
