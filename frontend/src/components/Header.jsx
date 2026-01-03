@@ -183,6 +183,9 @@ export default function Header() {
               <Link to="/my-orders" className="flex-shrink-0 bg-white border border-gray-100 shadow-sm px-4 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">Orders</Link>
               <Link to="/my-addresses" className="flex-shrink-0 bg-white border border-gray-100 shadow-sm px-4 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">Addresses</Link>
               <Link to="/my-wallet" className="flex-shrink-0 bg-white border border-gray-100 shadow-sm px-4 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">Wallet</Link>
+              {user.role === 'admin' && (
+                <Link to="/admin/dashboard" className="flex-shrink-0 bg-[#991b1b] text-white border border-red-800 shadow-sm px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-800 transition-colors">Admin Panel</Link>
+              )}
             </>
           )}
         </div>
