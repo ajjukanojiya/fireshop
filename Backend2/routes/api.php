@@ -10,9 +10,8 @@ use App\Http\Controllers\API\V1\AuthController;
 use App\Http\Controllers\API\V1\GoogleAuthController;
 use App\Http\Controllers\API\V1\CheckoutController;
 
-// Standard V1 Routing
-// Full path will be /api/v1/... (since apiPrefix is set to 'api' in bootstrap/app.php)
-Route::prefix('v1')->group(function () {
+// Direct /api/v1 prefix to match AWS Nginx and Local Proxy exactly
+Route::prefix('api/v1')->group(function () {
 
     Route::get('/auth/me', function (Request $request) {
         return response()->json(['user' => $request->user()]);
