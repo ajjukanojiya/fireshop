@@ -101,7 +101,8 @@ export default function AdminOrders() {
                 </select>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left text-sm text-gray-600">
                     <thead className="bg-gray-50 text-gray-500 font-medium uppercase text-xs">
                         <tr>
@@ -128,11 +129,8 @@ export default function AdminOrders() {
                                 <td className="px-6 py-4 font-medium">
                                     <div className="flex flex-col">
                                         <span>₹ {order.total_amount.toLocaleString()}</span>
-                                        {/* COD Tracking */}
-                                        {/* Show Collection Info if ANY amount was collected (or if explicit COD) */}
                                         {(order.delivery?.collected_amount !== undefined && order.delivery?.collected_amount !== null) || order.payment_method?.toLowerCase() === 'cod' ? (
                                             <div className="mt-1 flex flex-col gap-1 text-[10px]">
-                                                {/* If delivery exists and something was collected */}
                                                 {order.delivery?.collected_amount !== undefined && order.delivery?.collected_amount !== null ? (
                                                     Number(order.delivery.collected_amount) < Number(order.total_amount) ? (
                                                         <>
@@ -171,7 +169,6 @@ export default function AdminOrders() {
                                             View Details
                                         </button>
                                         <div className="flex flex-col">
-                                            {/* Check if delivery exists */}
                                             {order.delivery && order.delivery.delivery_boy ? (
                                                 <div className="flex flex-col items-start gap-1">
                                                     <div className="flex items-center gap-1 text-xs font-bold text-green-700 bg-green-50 px-2 py-1 rounded border border-green-100">
@@ -212,6 +209,90 @@ export default function AdminOrders() {
                         ))}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden divide-y divide-gray-100 px-4">
+                {loading ? (
+                    <div className="text-center py-8">Loading orders...</div>
+                ) : orders.length === 0 ? (
+                    <div className="text-center py-8">No orders found.</div>
+                ) : orders.map(order => (
+                    <div key={order.id} className="py-4 space-y-4">
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                                <p className="font-mono font-black text-slate-900">#{order.id}</p>
+                                <p className="text-sm font-bold text-slate-700">{order.user?.name || order.user?.phone || 'Guest'}</p>
+                                <p className="text-xs text-slate-400">{order.user?.email}</p>
+                            </div>
+                            <div className="text-right space-y-2">
+                                <p className="font-black text-slate-900">₹{order.total_amount.toLocaleString()}</p>
+                                <span className={`inline-block px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-tight ${statusColors[order.status] || 'bg-gray-100'}`}>
+                                    {order.status}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Payment Info */}
+                        {(order.delivery?.collected_amount !== undefined && order.delivery?.collected_amount !== null) || order.payment_method?.toLowerCase() === 'cod' ? (
+                            <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                {order.delivery?.collected_amount !== undefined && order.delivery?.collected_amount !== null ? (
+                                    <div className="flex justify-between text-xs font-bold">
+                                        <span className="text-slate-500 uppercase tracking-tighter">Collected:</span>
+                                        <span className={Number(order.delivery.collected_amount) < Number(order.total_amount) ? 'text-red-600' : 'text-green-600'}>
+                                            ₹{Number(order.delivery.collected_amount).toLocaleString()}
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest text-center italic">COD Pending Arrival</p>
+                                )}
+                            </div>
+                        ) : null}
+
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => {
+                                    setSelectedOrderItems(order.items || []);
+                                    setSelectedOrderDetails(order);
+                                    setShowDetailsModal(true);
+                                }}
+                                className="flex-1 py-3 bg-blue-50 text-blue-700 rounded-xl font-black text-[10px] uppercase tracking-widest border border-blue-100"
+                            >
+                                View Details
+                            </button>
+                            {order.delivery && order.delivery.delivery_boy ? (
+                                <button
+                                    onClick={() => openAssignModal(order.id)}
+                                    className="flex-1 py-3 bg-green-50 text-green-700 rounded-xl font-black text-[10px] uppercase tracking-widest border border-green-100"
+                                >
+                                    ✓ {order.delivery.delivery_boy.name}
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => openAssignModal(order.id)}
+                                    className="flex-1 py-3 bg-purple-50 text-purple-700 rounded-xl font-black text-[10px] uppercase tracking-widest border border-purple-100"
+                                >
+                                    Assign
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Update Status:</label>
+                            <select
+                                className="flex-1 text-xs border border-slate-200 rounded-xl px-4 py-2 bg-white"
+                                value={order.status}
+                                onChange={(e) => updateStatus(order.id, e.target.value)}
+                            >
+                                <option value="pending">Pending</option>
+                                <option value="processing">Processing</option>
+                                <option value="shipped">Shipped</option>
+                                <option value="delivered">Delivered</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                ))}
             </div>
 
             {/* Order Details Modal */}

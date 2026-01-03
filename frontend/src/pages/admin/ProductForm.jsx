@@ -106,6 +106,15 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
     }, [formData.purchase_price, formData.packets_per_peti, formData.pieces_per_packet, formData.opening_stock_peti]);
 
 
+    const formatSize = (bytes) => {
+        if (!bytes) return '0 B';
+        const k = 1024;
+        const dm = 2;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    };
+
     // Handle File Changes
     const handleFileChange = (type, e) => {
         const selectedFiles = e.target.files;
@@ -428,7 +437,10 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Thumbnail */}
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-gray-600 uppercase">Main Image</label>
+                            <label className="text-xs font-bold text-gray-600 uppercase flex justify-between">
+                                <span>Main Image</span>
+                                <span className="text-[10px] text-gray-400">Max 5MB</span>
+                            </label>
                             <div className="relative group overflow-hidden rounded-xl border-dashed border-2 border-gray-300 aspect-square bg-gray-50 flex items-center justify-center hover:bg-white transition-colors">
                                 {previews.thumbnail || product?.thumbnail_url ? (
                                     <img src={previews.thumbnail || product?.thumbnail_url} className="w-full h-full object-cover" />
@@ -437,16 +449,19 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                                 )}
                                 <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={e => handleFileChange('thumbnail', e)} />
                             </div>
+                            {files.thumbnail && (
+                                <p className="text-[10px] text-blue-600 font-bold mt-1">Size: {formatSize(files.thumbnail.size)}</p>
+                            )}
                         </div>
                         {/* Gallery */}
                         <div className="space-y-2">
                             <div className="flex justify-between">
-                                <label className="text-xs font-bold text-gray-600 uppercase">Gallery (Multiple)</label>
+                                <label className="text-xs font-bold text-gray-600 uppercase">Gallery <span className="text-[10px] text-gray-400 font-normal">(Max 5MB/each)</span></label>
                                 {previews.images.length > 0 && <button type="button" onClick={() => clearSelection('images')} className="text-[10px] text-red-500 font-bold">CLEAR</button>}
                             </div>
                             <div className="relative rounded-xl border-dashed border-2 border-gray-300 h-32 bg-gray-50 flex items-center justify-center">
-                                <span className="text-xs text-gray-400 font-bold">
-                                    {previews.images.length > 0 ? `${previews.images.length} Selected` : 'Select Images'}
+                                <span className="text-xs text-gray-400 font-bold text-center px-4">
+                                    {previews.images.length > 0 ? `${previews.images.length} Selected (${formatSize(files.images.reduce((acc, f) => acc + f.size, 0))})` : 'Select Images'}
                                 </span>
                                 <input type="file" multiple accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={e => handleFileChange('images', e)} />
                             </div>
@@ -458,7 +473,14 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                                 {previews.video && <button type="button" onClick={() => clearSelection('video')} className="text-[10px] text-red-500 font-bold">CLEAR</button>}
                             </div>
                             <div className="relative rounded-xl border-dashed border-2 border-gray-300 h-32 bg-gray-50 flex items-center justify-center">
-                                {previews.video ? <span className="text-xs font-bold text-green-600">Video Selected</span> : <span className="text-xs text-gray-400 font-bold">Select Video (MP4, Max 50MB)</span>}
+                                {previews.video ? (
+                                    <div className="text-center">
+                                        <span className="text-xs font-bold text-green-600">Video Selected</span>
+                                        {files.video && <p className="text-[10px] text-blue-600 font-bold">Size: {formatSize(files.video.size)}</p>}
+                                    </div>
+                                ) : (
+                                    <span className="text-xs text-gray-400 font-bold tracking-tight text-center px-4">Select Video<br />(MP4, Max 50MB)</span>
+                                )}
                                 <input type="file" accept="video/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={e => handleFileChange('video', e)} />
                             </div>
                             <label className="flex items-center gap-2 mt-2">

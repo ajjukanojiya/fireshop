@@ -225,7 +225,8 @@ export default function OnlinePayments() {
                                 </div>
 
                                 {/* Transactions Table */}
-                                <div className="overflow-x-auto">
+                                {/* Desktop view */}
+                                <div className="hidden md:block overflow-x-auto">
                                     <table className="w-full text-left text-sm">
                                         <thead className="bg-gray-50 text-gray-500 font-medium uppercase text-xs">
                                             <tr>
@@ -275,6 +276,44 @@ export default function OnlinePayments() {
                                             )}
                                         </tbody>
                                     </table>
+                                </div>
+
+                                {/* Mobile view */}
+                                <div className="md:hidden divide-y divide-gray-100">
+                                    {transactions.data.map(txn => (
+                                        <div key={txn.id} className="py-4 space-y-3">
+                                            <div className="flex justify-between items-start">
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ID: {txn.payment_id.substring(0, 12)}...</p>
+                                                    <p className="font-black text-slate-900">Order #{txn.order_id}</p>
+                                                </div>
+                                                <span className={`px-2 py-1 rounded text-[10px] font-black uppercase ${txn.status === 'success' ? 'bg-green-100 text-green-700' :
+                                                    txn.status === 'failed' ? 'bg-red-100 text-red-700' :
+                                                        'bg-yellow-100 text-yellow-700'
+                                                    }`}>
+                                                    {txn.status}
+                                                </span>
+                                            </div>
+
+                                            <div className="flex justify-between items-center text-sm font-bold">
+                                                <div className="text-slate-700">{txn.user?.name || 'Guest'}</div>
+                                                <div className="uppercase text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-500">{txn.payment_method}</div>
+                                            </div>
+
+                                            <div className="flex justify-between items-end border-t border-slate-50 pt-2">
+                                                <div className="text-[10px] text-slate-400">
+                                                    Fee: ₹{Number(txn.gateway_fee).toLocaleString()}
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Amount</p>
+                                                    <p className="text-lg font-black text-slate-900">₹{Number(txn.amount).toLocaleString()}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {transactions.data.length === 0 && (
+                                        <div className="text-center py-8 text-gray-400">No transactions found</div>
+                                    )}
                                 </div>
 
                                 {/* Pagination */}

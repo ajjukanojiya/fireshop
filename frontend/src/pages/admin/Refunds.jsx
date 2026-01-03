@@ -39,7 +39,8 @@ export default function AdminRefunds() {
                 <h2 className="text-xl font-bold text-gray-800">Refund Requests</h2>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Desktop View */}
+            <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left text-sm text-gray-600">
                     <thead className="bg-gray-50 text-gray-500 font-medium uppercase text-xs">
                         <tr>
@@ -69,8 +70,8 @@ export default function AdminRefunds() {
                                 <td className="px-6 py-4 max-w-xs truncate" title={refund.reason}>{refund.reason}</td>
                                 <td className="px-6 py-4">
                                     <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${refund.status === 'approved' ? 'bg-green-100 text-green-700' :
-                                            refund.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                                                'bg-yellow-100 text-yellow-700'
+                                        refund.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                            'bg-yellow-100 text-yellow-700'
                                         }`}>
                                         {refund.status}
                                     </span>
@@ -82,6 +83,49 @@ export default function AdminRefunds() {
                         ))}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Mobile View */}
+            <div className="md:hidden divide-y divide-gray-100 px-4">
+                {loading ? (
+                    <div className="text-center py-8">Loading...</div>
+                ) : refunds.length === 0 ? (
+                    <div className="text-center py-8">No refund requests found.</div>
+                ) : refunds.map(refund => (
+                    <div key={refund.id} className="py-4 space-y-3">
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                                <p className="font-mono font-black text-slate-900 text-xs">REFUND #{refund.id}</p>
+                                <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Order #{refund.order_id}</p>
+                            </div>
+                            <span className={`px-2 py-1 rounded text-[10px] font-black uppercase ${refund.status === 'approved' ? 'bg-green-100 text-green-700' :
+                                refund.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                    'bg-yellow-100 text-yellow-700'
+                                }`}>
+                                {refund.status}
+                            </span>
+                        </div>
+
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <p className="font-black text-slate-900 text-sm">{refund.order?.user?.name || 'Customer'}</p>
+                                <p className="text-xs text-slate-400">{refund.order?.user?.phone}</p>
+                            </div>
+                            <p className="text-lg font-black text-red-600">₹{refund.amount}</p>
+                        </div>
+
+                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 italic text-xs text-slate-500">
+                            "{refund.reason}"
+                        </div>
+
+                        <button
+                            onClick={() => setSelectedRefund(refund)}
+                            className="w-full py-3 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-slate-200"
+                        >
+                            Review Request
+                        </button>
+                    </div>
+                ))}
             </div>
 
             {/* View/Action Modal */}
