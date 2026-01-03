@@ -4,7 +4,7 @@ import api from "../api/api";
 
 const CartContext = createContext();
 
-export function useCart(){ return useContext(CartContext); }
+export function useCart() { return useContext(CartContext); }
 
 export function CartProvider({ children }) {
   const [items, setItems] = useState([]); // items array: if guest shape: {id, product, quantity, meta}
@@ -13,13 +13,13 @@ export function CartProvider({ children }) {
 
   // helper: recalc total
   const recalc = (list) => {
-    const t = list.reduce((s,it) => s + ((it.quantity||0) * (parseFloat(it.product?.price || 0))), 0);
+    const t = list.reduce((s, it) => s + ((it.quantity || 0) * (parseFloat(it.product?.price || 0))), 0);
     setTotal(Number(t));
   };
 
   // load cart: try server cart -> fallback to local
-  const loadCart = async () => {
-    setLoading(true);
+  const loadCart = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       const res = await api.get('/cart'); // expects {data:[], total:...} or 401
       if (res.status === 200 && Array.isArray(res.data.data)) {
@@ -33,7 +33,7 @@ export function CartProvider({ children }) {
         setLoading(false);
         return;
       }
-    } catch(e){
+    } catch (e) {
       // unauth or network - fallback
       // console.warn('server cart load failed', e);
     }
@@ -44,10 +44,10 @@ export function CartProvider({ children }) {
     setLoading(false);
   };
 
-  useEffect(()=> { loadCart(); }, []);
+  useEffect(() => { loadCart(); }, []);
 
   // watch login token change via storage events (other tabs)
-  useEffect(()=> {
+  useEffect(() => {
     const h = (e) => {
       if (e.key === 'token') loadCart();
     };
@@ -56,7 +56,7 @@ export function CartProvider({ children }) {
   }, []);
 
   // persist guest cart
-  useEffect(()=>{
+  useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
       localStorage.setItem('cart', JSON.stringify(items));
@@ -71,7 +71,7 @@ export function CartProvider({ children }) {
     for (const g of guest) {
       try {
         await api.post('/cart/add', { product_id: g.product.id, quantity: g.quantity, meta: g.meta || null });
-      } catch(e){
+      } catch (e) {
         // ignore individual errors
       }
     }
@@ -87,29 +87,29 @@ export function CartProvider({ children }) {
       // guest local
       const existing = items.find(i => i.product.id === product.id);
       if (existing) {
-        const updated = items.map(i => i.product.id === product.id ? {...i, quantity: i.quantity + quantity} : i);
+        const updated = items.map(i => i.product.id === product.id ? { ...i, quantity: i.quantity + quantity } : i);
         setItems(updated); recalc(updated);
-        return { ok:true, guest:true };
+        return { ok: true, guest: true };
       } else {
         const newItem = { id: `g_${Date.now()}`, product, quantity, meta };
         const updated = [...items, newItem];
         setItems(updated); recalc(updated);
-        return { ok:true, guest:true };
+        return { ok: true, guest: true };
       }
     } else {
       try {
         const res = await api.post('/cart/add', { product_id: product.id, quantity, meta });
-        // refresh server cart
-        await loadCart();
-        return { ok:true, guest:false, item: res.data.item };
-      } catch(err){
+        // refresh server cart silently
+        await loadCart(false);
+        return { ok: true, guest: false, item: res.data.item };
+      } catch (err) {
         if (err.response && err.response.status === 401) {
           // Token expired/invalid. Remove it and retry as guest.
           localStorage.removeItem('token');
-          return addToCart(product, quantity, meta); 
+          return addToCart(product, quantity, meta);
         }
         const message = err?.response?.data || err.message;
-        return { ok:false, error: message };
+        return { ok: false, error: message };
       }
     }
   };
@@ -117,21 +117,21 @@ export function CartProvider({ children }) {
   const updateCartItem = async (itemId, quantity, meta) => {
     const token = localStorage.getItem('token');
     if (!token) {
-      const updated = items.map(i => i.id === itemId ? {...i, quantity, meta: meta ?? i.meta} : i);
+      const updated = items.map(i => i.id === itemId ? { ...i, quantity, meta: meta ?? i.meta } : i);
       setItems(updated); recalc(updated);
-      return { ok:true, guest:true };
+      return { ok: true, guest: true };
     } else {
       try {
         await api.patch(`/cart/${itemId}`, { quantity, meta });
-        await loadCart();
-        return { ok:true };
-      } catch(e) { 
+        await loadCart(false);
+        return { ok: true };
+      } catch (e) {
         if (e.response && e.response.status === 401) {
           localStorage.removeItem('token');
           await loadCart(); // switch to guest (likely empty or local)
-          return { ok:false, error: "Session expired" };
+          return { ok: false, error: "Session expired" };
         }
-        return { ok:false, error: e?.response?.data || e.message }; 
+        return { ok: false, error: e?.response?.data || e.message };
       }
     }
   };
@@ -141,19 +141,19 @@ export function CartProvider({ children }) {
     if (!token) {
       const updated = items.filter(i => i.id !== itemId);
       setItems(updated); recalc(updated);
-      return { ok:true, guest:true };
+      return { ok: true, guest: true };
     } else {
       try {
         await api.delete(`/cart/${itemId}`);
-        await loadCart();
-        return { ok:true };
-      } catch(e) { 
+        await loadCart(false);
+        return { ok: true };
+      } catch (e) {
         if (e.response && e.response.status === 401) {
           localStorage.removeItem('token');
           await loadCart();
-          return { ok:false, error: "Session expired" };
+          return { ok: false, error: "Session expired" };
         }
-        return { ok:false, error: e?.response?.data || e.message }; 
+        return { ok: false, error: e?.response?.data || e.message };
       }
     }
   };
@@ -162,19 +162,19 @@ export function CartProvider({ children }) {
     const token = localStorage.getItem('token');
     if (!token) {
       setItems([]); setTotal(0); localStorage.removeItem('cart');
-      return { ok:true };
+      return { ok: true };
     } else {
       try {
         await api.post('/cart/clear');
         await loadCart();
-        return { ok:true };
-      } catch(e){ 
+        return { ok: true };
+      } catch (e) {
         if (e.response && e.response.status === 401) {
           localStorage.removeItem('token');
           await loadCart();
-          return { ok:false, error: "Session expired" };
+          return { ok: false, error: "Session expired" };
         }
-        return { ok:false, error: e?.response?.data || e.message }; 
+        return { ok: false, error: e?.response?.data || e.message };
       }
     }
   };
