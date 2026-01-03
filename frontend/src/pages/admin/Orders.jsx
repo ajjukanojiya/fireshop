@@ -123,8 +123,9 @@ export default function AdminOrders() {
                             <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                                 <td className="px-6 py-4 font-mono font-medium text-gray-900">#{order.id}</td>
                                 <td className="px-6 py-4">
-                                    <p className="font-medium text-gray-900">{order.user?.name || order.user?.phone || 'Guest'}</p>
-                                    <p className="text-xs text-gray-500">{order.user?.email}</p>
+                                    <p className="font-medium text-gray-900">{order.user?.name || 'Guest'}</p>
+                                    <p className="text-xs text-slate-500 font-bold">{order.user?.phone || order.guest_phone || 'No Phone'}</p>
+                                    <p className="text-[10px] text-gray-400">{order.user?.email}</p>
                                 </td>
                                 <td className="px-6 py-4 font-medium">
                                     <div className="flex flex-col">
@@ -212,84 +213,111 @@ export default function AdminOrders() {
             </div>
 
             {/* Mobile Card View */}
-            <div className="md:hidden divide-y divide-gray-100 px-4">
+            <div className="md:hidden space-y-4 p-4 bg-slate-50">
                 {loading ? (
-                    <div className="text-center py-8">Loading orders...</div>
+                    <div className="text-center py-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto mb-4"></div>
+                        <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Loading Orders...</p>
+                    </div>
                 ) : orders.length === 0 ? (
-                    <div className="text-center py-8">No orders found.</div>
+                    <div className="text-center py-12 bg-white rounded-2xl border border-slate-100">
+                        <span className="text-4xl mb-4 block">📦</span>
+                        <p className="text-slate-500 font-bold tracking-tight">No orders found.</p>
+                    </div>
                 ) : orders.map(order => (
-                    <div key={order.id} className="py-4 space-y-4">
+                    <div key={order.id} className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100 space-y-5 relative overflow-hidden">
+
+                        {/* Status Stripe */}
+                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${statusColors[order.status]?.split(' ')[0] || 'bg-slate-200'}`} />
+
+                        {/* Order ID & Status */}
                         <div className="flex justify-between items-start">
-                            <div className="space-y-1">
-                                <p className="font-mono font-black text-slate-900">#{order.id}</p>
-                                <p className="text-sm font-bold text-slate-700">{order.user?.name || order.user?.phone || 'Guest'}</p>
-                                <p className="text-xs text-slate-400">{order.user?.email}</p>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Priority Order</span>
+                                <h3 className="font-black text-xl text-slate-900 leading-none">#{order.id}</h3>
                             </div>
-                            <div className="text-right space-y-2">
-                                <p className="font-black text-slate-900">₹{order.total_amount.toLocaleString()}</p>
-                                <span className={`inline-block px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-tight ${statusColors[order.status] || 'bg-gray-100'}`}>
-                                    {order.status}
-                                </span>
+                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${statusColors[order.status] || 'bg-slate-100 text-slate-400'}`}>
+                                {order.status}
+                            </span>
+                        </div>
+
+                        {/* Customer Info Box */}
+                        <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-lg shadow-sm">👤</div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-black text-slate-800 truncate">{order.user?.name || 'Guest Customer'}</p>
+                                <a
+                                    href={`tel:${order.user?.phone || order.guest_phone}`}
+                                    className="flex items-center gap-1 text-blue-600 font-black text-xs mt-0.5"
+                                >
+                                    <span className="text-xs">📞</span>
+                                    {order.user?.phone || order.guest_phone || 'No Number'}
+                                </a>
+                                <p className="text-[9px] font-bold text-slate-400 truncate tracking-tight">{order.user?.email || 'N/A'}</p>
                             </div>
                         </div>
 
-                        {/* Payment Info */}
-                        {(order.delivery?.collected_amount !== undefined && order.delivery?.collected_amount !== null) || order.payment_method?.toLowerCase() === 'cod' ? (
-                            <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
-                                {order.delivery?.collected_amount !== undefined && order.delivery?.collected_amount !== null ? (
-                                    <div className="flex justify-between text-xs font-bold">
-                                        <span className="text-slate-500 uppercase tracking-tighter">Collected:</span>
-                                        <span className={Number(order.delivery.collected_amount) < Number(order.total_amount) ? 'text-red-600' : 'text-green-600'}>
-                                            ₹{Number(order.delivery.collected_amount).toLocaleString()}
-                                        </span>
-                                    </div>
+                        {/* Financials & Payment */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block text-center">Amount</span>
+                                <p className="text-lg font-black text-slate-900 text-center leading-none">₹{order.total_amount.toLocaleString()}</p>
+                            </div>
+                            <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex flex-col items-center justify-center">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Payment</span>
+                                {(order.delivery?.collected_amount !== undefined && order.delivery?.collected_amount !== null) ? (
+                                    <span className={`text-[10px] font-bold uppercase bg-green-50 text-green-600 px-2 py-0.5 rounded border border-green-100`}>
+                                        PAID: ₹{order.delivery.collected_amount.toLocaleString()}
+                                    </span>
                                 ) : (
-                                    <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest text-center italic">COD Pending Arrival</p>
+                                    <span className="text-[10px] font-black text-orange-600 uppercase italic">COD / PENDING</span>
                                 )}
                             </div>
-                        ) : null}
+                        </div>
 
-                        <div className="flex items-center gap-2">
+                        {/* Quick Actions Row */}
+                        <div className="flex items-center gap-3">
                             <button
                                 onClick={() => {
                                     setSelectedOrderItems(order.items || []);
                                     setSelectedOrderDetails(order);
                                     setShowDetailsModal(true);
                                 }}
-                                className="flex-1 py-3 bg-blue-50 text-blue-700 rounded-xl font-black text-[10px] uppercase tracking-widest border border-blue-100"
+                                className="flex-1 py-4 bg-[#0f172a] text-white rounded-[1.2rem] font-black text-[10px] uppercase tracking-widest shadow-xl shadow-slate-100 hover:bg-slate-800 transition-all active:scale-95"
                             >
-                                View Details
+                                Details
                             </button>
                             {order.delivery && order.delivery.delivery_boy ? (
                                 <button
                                     onClick={() => openAssignModal(order.id)}
-                                    className="flex-1 py-3 bg-green-50 text-green-700 rounded-xl font-black text-[10px] uppercase tracking-widest border border-green-100"
+                                    className="px-6 py-4 bg-green-50 text-green-700 rounded-[1.2rem] font-black text-[10px] uppercase tracking-widest border border-green-100 flex items-center gap-2"
                                 >
-                                    ✓ {order.delivery.delivery_boy.name}
+                                    <span className="text-lg">🚚</span>
+                                    <span>{order.delivery.delivery_boy.name.split(' ')[0]}</span>
                                 </button>
                             ) : (
                                 <button
                                     onClick={() => openAssignModal(order.id)}
-                                    className="flex-1 py-3 bg-purple-50 text-purple-700 rounded-xl font-black text-[10px] uppercase tracking-widest border border-purple-100"
+                                    className="flex-1 py-4 bg-red-600 text-white rounded-[1.2rem] font-black text-[10px] uppercase tracking-widest shadow-xl shadow-red-100 active:scale-95"
                                 >
-                                    Assign
+                                    Assign Boy
                                 </button>
                             )}
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Update Status:</label>
-                            <select
-                                className="flex-1 text-xs border border-slate-200 rounded-xl px-4 py-2 bg-white"
-                                value={order.status}
-                                onChange={(e) => updateStatus(order.id, e.target.value)}
-                            >
-                                <option value="pending">Pending</option>
-                                <option value="processing">Processing</option>
-                                <option value="shipped">Shipped</option>
-                                <option value="delivered">Delivered</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
+                        {/* Inline Status Selection */}
+                        <div className="pt-2 border-t border-slate-50">
+                            <div className="flex flex-wrap gap-2">
+                                {['pending', 'processing', 'shipped', 'delivered', 'cancelled'].map(s => (
+                                    <button
+                                        key={s}
+                                        onClick={() => updateStatus(order.id, s)}
+                                        className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${order.status === s ? 'bg-red-600 text-white shadow-lg' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+                                    >
+                                        {s}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -302,9 +330,14 @@ export default function AdminOrders() {
                         <div className="flex justify-between items-start mb-6">
                             <div>
                                 <h3 className="font-black text-2xl text-slate-900 tracking-tighter">Order #{selectedOrderDetails?.id} Items</h3>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
-                                    Customer: {selectedOrderDetails?.user?.name || selectedOrderDetails?.guest_phone || 'Guest'}
-                                </p>
+                                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        Customer: <span className="text-slate-900">{selectedOrderDetails?.user?.name || 'Guest'}</span>
+                                    </p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        Phone: <span className="text-blue-600 underline">{selectedOrderDetails?.user?.phone || selectedOrderDetails?.guest_phone || 'N/A'}</span>
+                                    </p>
+                                </div>
                             </div>
                             <button onClick={() => setShowDetailsModal(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
