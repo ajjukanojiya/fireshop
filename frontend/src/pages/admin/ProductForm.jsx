@@ -55,6 +55,7 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
     const [previews, setPreviews] = useState({ thumbnail: null, images: [], video: null });
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0); // 0-100%
 
     // Fetch Categories
     useEffect(() => {
@@ -110,16 +111,26 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
         const selectedFiles = e.target.files;
         if (!selectedFiles.length) return;
 
+        // Constants
+        const MAX_IMG = 5 * 1024 * 1024; // 5MB
+        const MAX_VID = 50 * 1024 * 1024; // 50MB
+
         if (type === 'thumbnail') {
             const file = selectedFiles[0];
+            if (file.size > MAX_IMG) { alert("Thumbnail too large! Max 5MB."); return; }
             setFiles(prev => ({ ...prev, thumbnail: file }));
             setPreviews(prev => ({ ...prev, thumbnail: URL.createObjectURL(file) }));
         } else if (type === 'images') {
             const fileArray = Array.from(selectedFiles);
-            setFiles(prev => ({ ...prev, images: fileArray }));
-            setPreviews(prev => ({ ...prev, images: fileArray.map(f => URL.createObjectURL(f)) }));
+            const validFiles = fileArray.filter(f => {
+                if (f.size > MAX_IMG) { alert(`Skipped ${f.name} (Too large > 5MB)`); return false; }
+                return true;
+            });
+            setFiles(prev => ({ ...prev, images: validFiles }));
+            setPreviews(prev => ({ ...prev, images: validFiles.map(f => URL.createObjectURL(f)) }));
         } else if (type === 'video') {
             const file = selectedFiles[0];
+            if (file.size > MAX_VID) { alert("Video too large! Max 50MB."); return; }
             setFiles(prev => ({ ...prev, video: file }));
             setPreviews(prev => ({ ...prev, video: URL.createObjectURL(file) }));
         }
@@ -161,7 +172,13 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
         if (files.video) payload.append('videos[]', files.video);
 
         try {
-            const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+            const config = {
+                headers: { 'Content-Type': 'multipart/form-data' },
+                onUploadProgress: (progressEvent) => {
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    setUploadProgress(percentCompleted);
+                }
+            };
             if (product) {
                 payload.append('_method', 'PUT');
                 await api.post(`/admin/products/${product.id}`, payload, config);
@@ -173,6 +190,7 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
             alert("Failed: " + (e.response?.data?.message || e.message));
         } finally {
             setLoading(false);
+            setUploadProgress(0);
         }
     };
 
@@ -440,7 +458,7 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                                 {previews.video && <button type="button" onClick={() => clearSelection('video')} className="text-[10px] text-red-500 font-bold">CLEAR</button>}
                             </div>
                             <div className="relative rounded-xl border-dashed border-2 border-gray-300 h-32 bg-gray-50 flex items-center justify-center">
-                                {previews.video ? <span className="text-xs font-bold text-green-600">Video Selected</span> : <span className="text-xs text-gray-400 font-bold">Select Video (MP4)</span>}
+                                {previews.video ? <span className="text-xs font-bold text-green-600">Video Selected</span> : <span className="text-xs text-gray-400 font-bold">Select Video (MP4, Max 50MB)</span>}
                                 <input type="file" accept="video/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={e => handleFileChange('video', e)} />
                             </div>
                             <label className="flex items-center gap-2 mt-2">
@@ -465,8 +483,13 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                             </div>
                         </label>
                         <button type="button" onClick={onCancel} className="px-6 py-4 rounded-xl font-bold text-gray-500 hover:bg-gray-50 bg-white border border-gray-200">Cancel</button>
-                        <button type="submit" disabled={loading} className="flex-[2] bg-slate-900 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-slate-800 shadow-xl transition-all">
-                            {loading ? 'Saving...' : 'Save Product'}
+                        <button type="submit" disabled={loading} className="flex-[2] bg-slate-900 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-slate-800 shadow-xl transition-all disabled:opacity-70 disabled:cursor-not-allowed">
+                            {loading ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    {uploadProgress > 0 && uploadProgress < 100 ? `Uploading: ${uploadProgress}%` : 'Processing...'}
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                </span>
+                            ) : 'Save Product'}
                         </button>
                     </div>
                 </div>

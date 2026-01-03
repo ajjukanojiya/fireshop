@@ -50,7 +50,50 @@ export default function AdminProducts() {
                 </button>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Mobile Card View (< md) */}
+            <div className="grid grid-cols-1 gap-4 p-4 md:hidden bg-gray-50">
+                {loading ? <div className="text-center py-8 text-gray-500">Loading products...</div> :
+                    products.data.map(p => (
+                        <div key={p.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-start gap-4">
+                            <div className="w-20 h-20 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden border border-gray-200">
+                                {p.thumbnail_url ?
+                                    <img src={p.thumbnail_url} className="w-full h-full object-cover" alt={p.title} /> :
+                                    <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">No Img</div>
+                                }
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex justify-between items-start">
+                                    <h3 className="font-bold text-gray-900 line-clamp-2 leading-tight mb-1">{p.title}</h3>
+                                    {p.is_featured === 1 && (
+                                        <span className="text-[10px] bg-red-50 text-red-600 px-1.5 rounded border border-red-100 font-bold ml-2 whitespace-nowrap">HOT</span>
+                                    )}
+                                </div>
+                                <div className="text-xs text-gray-500 mb-2">{p.category?.name} • {p.unit_value} {p.unit}</div>
+
+                                <div className="flex justify-between items-end mt-2">
+                                    <div>
+                                        <div className="text-lg font-black text-slate-800">₹{p.price}</div>
+                                        <div className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded w-fit ${p.stock < 5 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+                                            Stock: {p.stock}
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <button onClick={() => setEditingProduct(p)} className="p-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                        </button>
+                                        <button onClick={() => handleDelete(p.id)} className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                }
+            </div>
+
+            {/* Desktop Table View (>= md) */}
+            <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left text-sm text-gray-600">
                     <thead className="bg-gray-50 text-gray-500 font-medium uppercase text-xs">
                         <tr>
