@@ -26,9 +26,15 @@ export default function Home() {
 
         const catData = catRes.data?.data || catRes.data;
         if (Array.isArray(catData)) {
-          setCategories(catData.map(c => c.name));
+          setCategories(catData); // Store full category objects
         } else {
           setCategories([]);
+        }
+
+        // Initialize from URL param
+        const catId = searchParams.get("category");
+        if (catId) {
+          setSelected(parseInt(catId));
         }
 
       } catch (e) { console.error("Failed to load data", e); }
@@ -47,7 +53,7 @@ export default function Home() {
   }, [featured.length]);
 
   const filtered = products.filter(p => {
-    const matchesCategory = selected ? (p.category?.name || 'General') === selected : true;
+    const matchesCategory = selected ? p.category_id === selected : true;
     const matchesSearch = searchQuery ? (
       p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -205,7 +211,7 @@ export default function Home() {
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 pb-6 border-b border-slate-100">
               <div>
                 <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-                  {searchQuery ? `Search: ${searchQuery}` : (selected || 'All Collection')}
+                  {searchQuery ? `Search: ${searchQuery}` : (selected ? categories.find(c => c.id === selected)?.name : 'All Collection')}
                 </h2>
                 <p className="text-slate-400 text-sm font-medium mt-1">Showing {filtered.length} premium selections</p>
                 {searchQuery && (
