@@ -117,6 +117,10 @@ class ProductController extends Controller
         }
 
         if ($request->hasFile('thumbnail')) {
+            // Delete old thumbnail
+            if ($product->thumbnail_url) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $product->thumbnail_url));
+            }
             $path = $request->file('thumbnail')->store('products', 'public');
             $validated['thumbnail_url'] = '/storage/' . $path;
         }
@@ -124,6 +128,11 @@ class ProductController extends Controller
         $product->update($validated);
 
         if ($request->hasFile('images')) {
+            // REPLACE: Delete existing images
+            foreach ($product->images as $oldImage) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $oldImage->url));
+                $oldImage->delete();
+            }
              foreach ($request->file('images') as $image) {
                 $path = $image->store('products', 'public');
                 $product->images()->create(['url' => '/storage/' . $path]);
@@ -131,6 +140,11 @@ class ProductController extends Controller
         }
 
          if ($request->hasFile('videos')) {
+            // REPLACE: Delete existing videos
+            foreach ($product->videos as $oldVideo) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $oldVideo->url));
+                $oldVideo->delete();
+            }
             foreach ($request->file('videos') as $video) {
                 $path = $video->store('videos', 'public');
                 $product->videos()->create(['url' => '/storage/' . $path]);
