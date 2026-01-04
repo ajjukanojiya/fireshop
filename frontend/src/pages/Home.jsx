@@ -41,7 +41,7 @@ export default function Home() {
     })();
   }, []);
 
-  const featured = products.filter(p => p.is_featured === 1 || p.is_featured === true);
+  const featured = products.filter(p => Number(p.is_featured) === 1);
 
   // Auto-slide featured products
   useEffect(() => {
@@ -63,6 +63,15 @@ export default function Home() {
 
   const onQuickView = (product) => {
     window.location.href = `/product/${product.id}`;
+  };
+
+  const getFullUrl = (url) => {
+    if (!url) return "";
+    let cleanUrl = url.replace(/https?:\/\/localhost:8000/g, '');
+    if (cleanUrl.startsWith('http')) return cleanUrl;
+    if (cleanUrl.startsWith('/storage')) return cleanUrl;
+    if (cleanUrl.startsWith('storage/')) return '/' + cleanUrl;
+    return `/storage/${cleanUrl}`;
   };
 
   return (
@@ -144,13 +153,13 @@ export default function Home() {
                     <div className="relative group focus:outline-none">
                       <div className="absolute -inset-10 bg-[#991b1b]/20 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
                       <div className="relative aspect-[16/11] rounded-[3rem] overflow-hidden border border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.8)] bg-black group-hover:border-white/20 transition-colors duration-700">
-                        {p.videos && p.videos.length > 0 ? (
+                        {p.videos && p.videos[0] ? (
                           <video
                             key={p.videos[0].url}
                             autoPlay muted loop playsInline
                             className="w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-[2000ms]"
                           >
-                            <source src={p.videos[0].url.startsWith('http') ? p.videos[0].url : `${api.defaults.baseURL.replace('/api/v1', '')}/storage/${p.videos[0].url}`} />
+                            <source src={getFullUrl(p.videos[0].url)} type="video/mp4" />
                           </video>
 
                         ) : (

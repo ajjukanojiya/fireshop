@@ -83,8 +83,8 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                 season: product.season || 'Diwali',
                 hsn_code: product.hsn_code || '',
                 gst_percentage: product.gst_percentage || '',
-                video_downloadable: Boolean(product.video_downloadable),
-                is_featured: Boolean(product.is_featured)
+                video_downloadable: product.video_downloadable == 1 || product.video_downloadable === true,
+                is_featured: product.is_featured == 1 || product.is_featured === true
             });
         }
     }, [product]);
@@ -104,6 +104,15 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
         });
 
     }, [formData.purchase_price, formData.packets_per_peti, formData.pieces_per_packet, formData.opening_stock_peti]);
+
+    const getFullUrl = (url) => {
+        if (!url) return "";
+        let cleanUrl = url.replace(/https?:\/\/localhost:8000/g, '');
+        if (cleanUrl.startsWith('http')) return cleanUrl;
+        if (cleanUrl.startsWith('/storage')) return cleanUrl;
+        if (cleanUrl.startsWith('storage/')) return '/' + cleanUrl;
+        return `/storage/${cleanUrl}`;
+    };
 
 
     const formatSize = (bytes) => {
@@ -458,12 +467,34 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                         <div className="space-y-2">
                             <div className="flex justify-between">
                                 <label className="text-xs font-bold text-gray-600 uppercase">Gallery <span className="text-[10px] text-gray-400 font-normal">(Max 5MB/each)</span></label>
-                                {previews.images.length > 0 && <button type="button" onClick={() => clearSelection('images')} className="text-[10px] text-red-500 font-bold">CLEAR</button>}
+                                {previews.images.length > 0 && <button type="button" onClick={() => clearSelection('images')} className="text-[10px] text-red-500 font-bold">CLEAR NEW</button>}
                             </div>
-                            <div className="relative rounded-xl border-dashed border-2 border-gray-300 h-32 bg-gray-50 flex items-center justify-center">
-                                <span className="text-xs text-gray-400 font-bold text-center px-4">
-                                    {previews.images.length > 0 ? `${previews.images.length} Selected (${formatSize(files.images.reduce((acc, f) => acc + f.size, 0))})` : 'Select Images'}
-                                </span>
+
+                            {/* Existing Gallery Preview */}
+                            {product?.images?.length > 0 && previews.images.length === 0 && (
+                                <div className="flex flex-wrap gap-2 mb-2 p-2 bg-slate-50 rounded-xl border border-slate-100">
+                                    {product.images.map((img, i) => (
+                                        <img key={i} src={getFullUrl(img.url)} className="w-12 h-12 object-cover rounded-lg border border-white shadow-sm" alt="Existing" />
+                                    ))}
+                                    <div className="flex flex-col justify-center px-1">
+                                        <span className="text-[8px] font-black text-slate-400 uppercase leading-none">Current</span>
+                                        <span className="text-[8px] font-black text-slate-400 uppercase leading-none mt-1">Images</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="relative rounded-xl border-dashed border-2 border-gray-300 h-32 bg-gray-50 flex items-center justify-center overflow-hidden">
+                                {previews.images.length > 0 ? (
+                                    <div className="flex gap-1 p-2 overflow-x-auto">
+                                        {previews.images.map((url, i) => (
+                                            <img key={i} src={url} className="w-16 h-16 object-cover rounded-lg" alt="New Preview" />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <span className="text-xs text-gray-400 font-bold text-center px-4">
+                                        Select New Images <br /><span className="text-[10px] font-normal">(Will replace current gallery)</span>
+                                    </span>
+                                )}
                                 <input type="file" multiple accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={e => handleFileChange('images', e)} />
                             </div>
                         </div>
@@ -471,16 +502,30 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                         <div className="space-y-2">
                             <div className="flex justify-between">
                                 <label className="text-xs font-bold text-gray-600 uppercase">Video (Single)</label>
-                                {previews.video && <button type="button" onClick={() => clearSelection('video')} className="text-[10px] text-red-500 font-bold">CLEAR</button>}
+                                {previews.video && <button type="button" onClick={() => clearSelection('video')} className="text-[10px] text-red-500 font-bold">CLEAR NEW</button>}
                             </div>
+
+                            {/* Existing Video Preview Marker */}
+                            {product?.videos?.length > 0 && !previews.video && (
+                                <div className="flex items-center gap-3 mb-2 p-2 bg-slate-50 rounded-xl border border-slate-100">
+                                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-lg shadow-sm">📹</div>
+                                    <div className="flex flex-col">
+                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Existing Video Found</span>
+                                        <span className="text-[8px] font-bold text-slate-400">Attached to product</span>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="relative rounded-xl border-dashed border-2 border-gray-300 h-32 bg-gray-50 flex items-center justify-center">
                                 {previews.video ? (
                                     <div className="text-center">
-                                        <span className="text-xs font-bold text-green-600">Video Selected</span>
+                                        <span className="text-xs font-bold text-green-600">New Video Selected</span>
                                         {files.video && <p className="text-[10px] text-blue-600 font-bold">Size: {formatSize(files.video.size)}</p>}
                                     </div>
                                 ) : (
-                                    <span className="text-xs text-gray-400 font-bold tracking-tight text-center px-4">Select Video<br />(MP4, Max 50MB)</span>
+                                    <span className="text-xs text-gray-400 font-bold tracking-tight text-center px-4">
+                                        {product?.videos?.length > 0 ? 'Replace Video' : 'Select Video'}<br />(MP4, Max 50MB)
+                                    </span>
                                 )}
                                 <input type="file" accept="video/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={e => handleFileChange('video', e)} />
                             </div>
