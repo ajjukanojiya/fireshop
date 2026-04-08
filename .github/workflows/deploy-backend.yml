@@ -22,11 +22,21 @@ jobs:
             sudo apt-get install -y software-properties-common
             sudo add-apt-repository ppa:ondrej/php -y
             sudo apt-get update
-            sudo apt-get install -y php8.4-cli php8.4-fpm php8.4-mysql php8.4-xml php8.4-curl php8.4-mbstring php8.4-zip php8.4-bcmath php8.4-intl unzip nginx git
+            sudo apt-get install -y php8.4-cli php8.4-fpm php8.4-mysql php8.4-xml php8.4-curl php8.4-mbstring php8.4-zip php8.4-bcmath php8.4-intl unzip nginx git mysql-server
             
             # Use PHP 8.4 specifically
             PHP_VERSION="8.4"
             echo "Using PHP version: $PHP_VERSION"
+
+            # --- MySQL Local Setup ---
+            echo "Setting up local MySQL database..."
+            sudo systemctl enable mysql
+            sudo systemctl start mysql
+            sudo mysql -e "CREATE DATABASE IF NOT EXISTS fireshop_db;"
+            sudo mysql -e "CREATE USER IF NOT EXISTS 'admin'@'localhost' IDENTIFIED BY '${{ secrets.DB_PASSWORD }}';"
+            sudo mysql -e "ALTER USER 'admin'@'localhost' IDENTIFIED BY '${{ secrets.DB_PASSWORD }}';"
+            sudo mysql -e "GRANT ALL PRIVILEGES ON fireshop_db.* TO 'admin'@'localhost';"
+            sudo mysql -e "FLUSH PRIVILEGES;"
 
             # Setup project directory
             sudo mkdir -p /var/www/fireshop
@@ -67,16 +77,18 @@ jobs:
             # Setup .env
             if [ ! -f ".env" ]; then
               cp .env.example .env
-              sed -i "s/APP_DEBUG=false/APP_DEBUG=true/" .env
-              sed -i "s|APP_URL=http://localhost|APP_URL=http://${{ secrets.EC2_IP }}|" .env
-              sed -i "s/DB_HOST=127.0.0.1/DB_HOST=fireshop-db.cbcqkg8emzwm.ap-south-1.rds.amazonaws.com/" .env
-              sed -i "s/DB_DATABASE=laravel/DB_DATABASE=fireshop_db/" .env
-              sed -i "s/DB_USERNAME=root/DB_USERNAME=admin/" .env
-              sed -i "s/DB_PASSWORD=/DB_PASSWORD=${{ secrets.DB_PASSWORD }}/" .env
               php artisan key:generate
-            else
-              sed -i "s/APP_DEBUG=false/APP_DEBUG=true/" .env
             fi
+            
+            # Always ensure correct env values for local DB
+            sed -i "s/APP_DEBUG=false/APP_DEBUG=true/" .env
+            sed -i "s|APP_URL=http://localhost|APP_URL=http://${{ secrets.EC2_IP }}|" .env
+            
+            # Update DB configuration to use local MySQL (remove RDS settings if they exist)
+            sed -i "s/DB_HOST=.*/DB_HOST=127.0.0.1/" .env
+            sed -i "s/DB_DATABASE=.*/DB_DATABASE=fireshop_db/" .env
+            sed -i "s/DB_USERNAME=.*/DB_USERNAME=admin/" .env
+            sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=${{ secrets.DB_PASSWORD }}/" .env
 
             # Fix for subpath hosting: Create a symlink so Nginx 'root' works for /api
             mkdir -p public
