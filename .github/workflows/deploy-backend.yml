@@ -43,10 +43,12 @@ jobs:
             sudo chown -R ubuntu:ubuntu /var/www/fireshop
             
             cd /var/www/fireshop
+            git config --global --add safe.directory /var/www/fireshop
             if [ ! -d ".git" ]; then
               git clone https://github.com/${{ github.repository }} .
             else
-              git pull origin ${{ github.ref_name }}
+              git fetch --all
+              git reset --hard origin/${{ github.ref_name }}
             fi
 
             # --- Install Node.js ---
