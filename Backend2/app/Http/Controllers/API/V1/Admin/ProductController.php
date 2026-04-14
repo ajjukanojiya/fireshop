@@ -9,9 +9,85 @@ use App\Models\Product;
 use App\Models\Video;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
 
 class ProductController extends Controller
 {
+    public function extractFromImage(Request $request)
+    {
+        set_time_limit(180); // Prevent PHP from auto killing the script
+        $request->validate(['file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:10240']);
+        
+        $apiKey = env('GEMINI_API_KEY');
+        if (!$apiKey) {
+            return response()->json(['message' => 'Please configure GEMINI_API_KEY in .env file. Open AI Studio to generate a key.'], 400);
+        }
+
+        $file = $request->file('file');
+        $base64 = base64_encode(file_get_contents($file->path()));
+        $mimeType = $file->getClientMimeType();
+
+        $prompt = "You are an expert data extractor. Look at the attached invoice or product catalog image. Extract all the products into a strict JSON Array format. The JSON array should contain objects with these exact keys: 'title', 'brand', 'package_type' (e.g. Box, Packet), 'pieces_per_packet' (number), 'packets_per_peti' (number), 'selling_price_packet' (number), 'stock' (number). If you can't find a field, leave it empty. Respond ONLY with the JSON array, no markdown and no extra text.";
+
+        $data = [
+            "contents" => [
+                [
+                    "parts" => [
+                        ["text" => $prompt],
+                        [
+                            "inlineData" => [
+                                "mimeType" => $mimeType,
+                                "data" => $base64
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        try {
+            // Flash-lite models are less congested and have more generous free tier limits for token sizes
+            $apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={$apiKey}";
+            $response = Http::timeout(30)->post($apiUrl, $data);
+
+            if ($response->status() === 503 || $response->status() === 429) {
+                $apiUrlFallback = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={$apiKey}";
+                $response = Http::timeout(30)->post($apiUrlFallback, $data);
+                
+                if ($response->status() === 503 || $response->status() === 429) {
+                    $apiUrlFallback2 = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key={$apiKey}";
+                    $response = Http::timeout(25)->post($apiUrlFallback2, $data);
+                }
+            }
+
+            if ($response->failed()) {
+                return response()->json(['message' => 'AI Backend Rejected Request', 'error' => $response->body()], 500);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Connection to Google AI timed out. Apka internet slow hai ya file badi hai.', 'error' => $e->getMessage()], 500);
+        }
+
+        $result = $response->json();
+        $text = $result['candidates'][0]['content']['parts'][0]['text'] ?? '[]';
+        
+        // Clean markdown block if AI adds it
+        $text = str_replace(['```json', '```'], '', $text);
+        
+        // Find the first [ and last ] to safely extract JSON array
+        $start = strpos($text, '[');
+        $end = strrpos($text, ']');
+        if ($start !== false && $end !== false) {
+            $text = substr($text, $start, $end - $start + 1);
+        }
+
+        $extractedItems = json_decode(trim($text), true);
+
+        if (!$extractedItems) {
+            $extractedItems = []; 
+        }
+
+        return response()->json(['status' => 'success', 'data' => $extractedItems]);
+    }
     public function index()
     {
         $products = Product::with(['category', 'images', 'videos'])->latest()->paginate(10);

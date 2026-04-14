@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../api/api';
 import AdminProductForm from './ProductForm';
+import BulkImport from './BulkImport';
 
 export default function AdminProducts() {
     const [products, setProducts] = useState({ data: [] });
@@ -35,6 +36,14 @@ export default function AdminProducts() {
         } catch (e) { alert("Delete failed"); }
     };
 
+    if (editingProduct === 'bulk') {
+        return (
+            <div className="max-w-6xl mx-auto">
+                <BulkImport onSuccess={() => { setEditingProduct(null); loadProducts(); }} onCancel={() => setEditingProduct(null)} />
+            </div>
+        );
+    }
+
     if (editingProduct) {
         return (
             <div className="max-w-2xl mx-auto">
@@ -51,12 +60,20 @@ export default function AdminProducts() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                 <h2 className="text-xl font-bold text-gray-800">Products</h2>
-                <button
-                    onClick={() => setEditingProduct('new')}
-                    className="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 shadow-md shadow-red-200"
-                >
-                    + Add Product
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setEditingProduct('bulk')}
+                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 shadow-md shadow-indigo-200 flex items-center gap-2"
+                    >
+                        <span>⚡</span> Bulk Import
+                    </button>
+                    <button
+                        onClick={() => setEditingProduct('new')}
+                        className="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 shadow-md shadow-red-200"
+                    >
+                        + Add Product
+                    </button>
+                </div>
             </div>
 
             {/* Mobile Card View (< md) */}

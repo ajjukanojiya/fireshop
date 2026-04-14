@@ -62,6 +62,7 @@ foreach ($prefixes as $p) {
 
         // ADMIN ROUTES
         Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
+            Route::post('products/ai-extract', [\App\Http\Controllers\API\V1\Admin\ProductController::class, 'extractFromImage']);
             Route::get('/dashboard', [\App\Http\Controllers\API\V1\Admin\DashboardController::class, 'index']);
             Route::apiResource('products', \App\Http\Controllers\API\V1\Admin\ProductController::class);
             Route::delete('products/videos/{id}', [\App\Http\Controllers\API\V1\Admin\ProductController::class, 'destroyVideo']);
