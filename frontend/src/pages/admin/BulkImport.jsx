@@ -29,6 +29,21 @@ export default function BulkImport({ onCancel, onSuccess }) {
         a.click();
     };
 
+    const downloadDealerFormat = () => {
+        const headers = ["S.No.", "Item Name / Patakha", "Brand", "Pack Type (Box/Pkt)", "Pcs Per Pack", "Stock (Total Quantity)", "Rate Per Pack (Rs)"];
+        const csv = Papa.unparse({ fields: headers, data: [
+            ["1", "Sky Shot Golden", "Standard", "Box", "10", "50", "280.00"],
+            ["2", "Laxmi Bomb", "Cock", "Packet", "5", "120", "45.00"],
+            ["3", "", "", "", "", "", ""]
+        ] });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "Ideal_Dealer_Invoice_Format.csv";
+        a.click();
+    };
+
     const handleFileUpload = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -238,11 +253,16 @@ export default function BulkImport({ onCancel, onSuccess }) {
                             <h3 className="text-xl font-bold text-indigo-900 mb-2">AI Magic Scan</h3>
                             <p className="text-indigo-600/80 mb-8 text-sm max-w-[280px]">Upload a photo of your supplier catalog or invoice. AI will read it and auto-fill the table format.</p>
                             
-                            <label className="w-full mt-auto py-3 bg-indigo-600 border border-transparent text-white rounded-xl font-bold hover:bg-indigo-700 transition-all cursor-pointer shadow-md shadow-indigo-200 flex items-center justify-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                                Upload Photo / PDF
-                                <input type="file" accept="image/*,.pdf" className="hidden" onChange={handleAiUpload} />
-                            </label>
+                            <div className="flex flex-col gap-3 w-full mt-auto">
+                                <button onClick={downloadDealerFormat} className="w-full py-3 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-xl font-bold hover:bg-indigo-100 transition-all flex items-center justify-center gap-2">
+                                    📋 Download Dealer Format (Excel)
+                                </button>
+                                <label className="w-full py-3 bg-indigo-600 border border-transparent text-white rounded-xl font-bold hover:bg-indigo-700 transition-all cursor-pointer shadow-md shadow-indigo-200 flex items-center justify-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                    Upload Photo / PDF
+                                    <input type="file" accept="image/*,.pdf" className="hidden" onChange={handleAiUpload} />
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
