@@ -11,15 +11,19 @@ export default function Register() {
   const navigate = useNavigate();
 
   const handleRegister = async () => {
-    if (!phone) return setMsg("Enter phone number");
     if (!name) return setMsg("Enter your name");
+    if (!phone || phone.length !== 10) return setMsg("Enter a valid 10-digit mobile number");
 
     setLoading(true); setMsg(null);
     try {
       // In this specific flow, we might just send OTP first, 
       // but conceptually we want to capture the name.
       // For now, we trigger the standardized OTP flow.
-      await api.post('/auth/send-otp', { phone });
+      const res = await api.post('/auth/send-otp', { phone });
+      const otpSent = res.data?.otp;
+      if (otpSent) {
+        alert(`\n🔥 TESTING OTP 🔥\n\nYour OTP is: ${otpSent}\n\nPlease remember it for the next screen!`);
+      }
 
       // Ideally backend caches the name or we pass it, but for simplistic auth flow:
       navigate(`/verify-otp?phone=${encodeURIComponent(phone)}`);
@@ -85,8 +89,13 @@ export default function Register() {
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">+91</span>
                     <input
+                      type="tel"
+                      maxLength="10"
                       value={phone}
-                      onChange={e => setPhone(e.target.value)}
+                      onChange={e => {
+                        const val = e.target.value.replace(/\D/g, "");
+                        if (val.length <= 10) setPhone(val);
+                      }}
                       placeholder="98765 43210"
                       className="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-slate-900 focus:outline-none transition-all font-medium text-lg"
                     />

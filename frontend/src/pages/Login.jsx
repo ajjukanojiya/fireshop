@@ -39,19 +39,15 @@ export default function Login() {
   }, [navigate]);
 
   const sendOtp = async () => {
-    if (!phone) return setMsg("Enter phone");
+    if (!phone || phone.length !== 10) return setMsg("Enter a valid 10-digit mobile number");
     setLoading(true); setMsg(null);
     try {
       const res = await api.post('/auth/send-otp', { phone });
-      const otpSent = res.data.otp;
+      const otpSent = res.data?.otp;
       if (otpSent) {
-        setMsg(`OTP sent successfully: ${otpSent}`);
-        setTimeout(() => {
-          navigate(`/verify-otp?phone=${encodeURIComponent(phone)}`);
-        }, 2000);
-      } else {
-        navigate(`/verify-otp?phone=${encodeURIComponent(phone)}`);
+        alert(`\n🔥 TESTING OTP 🔥\n\nYour OTP is: ${otpSent}\n\nPlease remember it for the next screen!`);
       }
+      navigate(`/verify-otp?phone=${encodeURIComponent(phone)}`);
     } catch (e) {
       setMsg(e?.response?.data?.message || 'Failed to send OTP');
     } finally { setLoading(false); }
@@ -95,8 +91,13 @@ export default function Login() {
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">+91</span>
                     <input
+                      type="tel"
+                      maxLength="10"
                       value={phone}
-                      onChange={e => setPhone(e.target.value)}
+                      onChange={e => {
+                        const val = e.target.value.replace(/\D/g, "");
+                        if (val.length <= 10) setPhone(val);
+                      }}
                       placeholder="98765 43210"
                       className="w-full pl-14 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:outline-none transition-all font-medium text-lg"
                     />
