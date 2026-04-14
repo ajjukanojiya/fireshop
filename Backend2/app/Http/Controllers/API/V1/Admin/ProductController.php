@@ -27,12 +27,23 @@ class ProductController extends Controller
         $base64 = base64_encode(file_get_contents($file->path()));
         $mimeType = $file->getClientMimeType();
 
+        // Load existing product titles to feed the AI for Advanced Exact Semantic Matching
+        $existingTitlesArray = \App\Models\Product::pluck('title')->toArray();
+        $existingTitlesJson = json_encode($existingTitlesArray, JSON_UNESCAPED_UNICODE);
+
         $prompt = "You are an expert data extractor. Look at the attached invoice, product catalog image, or handwritten bill. Invoices have completely different column structures varying by seller. Your job is to semantically translate whatever format they used into our strict JSON format! 
+        
+        CRITICAL INVENTORY MATCHING RULE: 
+        Here are the EXACT names of the products already in our database catalog:
+        {$existingTitlesJson}
+        Whenever you extract a product name from the image, you MUST closely compare it against this catalog list. If the handwritten or poorly scanned name semantically matches or sounds very similar to one of the catalog names (e.g., 'Hydran Bons' vs 'Hydron Bons', 'Aanar' vs 'Anar'), you MUST forcibly discard the spelling observed in the image and REPLACE it with the EXACT matching existing title from our catalog. This is absolutely mandatory to prevent inventory duplication. If it is completely new and doesn't match anything, keep the spelling you see.
+        
         MAPPING RULES:
         1. If bill says 'Item', 'Particulars', 'Name' -> map to 'title'.
         2. If bill says 'Rate', 'Price', 'Amount' -> map to 'selling_price_packet'.
         3. If bill says 'Qty', 'Quantity', 'Boxes' -> map to 'stock'.
         4. Extract 'brand', 'package_type' (e.g. Box, Packet), 'pieces_per_packet', 'packets_per_peti' ONLY if visible, else keep them empty.
+        
         Respond ONLY with a strict JSON Array of objects containing these exact keys: 'title', 'brand', 'package_type', 'pieces_per_packet', 'packets_per_peti', 'selling_price_packet', 'stock'. Do not use markdown and output pure JSON.";
 
         $data = [
@@ -138,7 +149,21 @@ class ProductController extends Controller
             $validated['thumbnail_url'] = '/storage/' . $path;
         }
         
-        $product = Product::create($validated);
+        $existingProduct = Product::where('title', $validated['title'])->first();
+        if ($existingProduct) {
+            // Smart Inventory Logic: Add to existing stock instead of duplicate entry
+            $existingProduct->stock += $validated['stock']; // Math add stock (e.g. 50 + 50 = 100)
+            $existingProduct->selling_price_packet = $validated['selling_price_packet']; // Update latest price
+            $existingProduct->price = $validated['selling_price_packet'];
+            
+            if (isset($validated['thumbnail_url'])) {
+                 $existingProduct->thumbnail_url = $validated['thumbnail_url'];
+            }
+            $existingProduct->save();
+            $product = $existingProduct;
+        } else {
+            $product = Product::create($validated);
+        }
 
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {

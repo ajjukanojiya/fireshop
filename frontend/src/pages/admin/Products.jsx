@@ -58,9 +58,14 @@ export default function AdminProducts() {
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                <h2 className="text-xl font-bold text-gray-800">Products</h2>
-                <div className="flex gap-2">
+            <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                <div className="flex items-center gap-3">
+                    <h2 className="text-2xl font-black text-slate-800 tracking-tight">Products</h2>
+                    <div className="bg-slate-100 text-slate-600 px-3 py-1 text-sm font-bold rounded-full border border-slate-200 shadow-inner">
+                        {products?.total || 0} Items
+                    </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
                     <button
                         onClick={() => setEditingProduct('bulk')}
                         className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 shadow-md shadow-indigo-200 flex items-center gap-2"
