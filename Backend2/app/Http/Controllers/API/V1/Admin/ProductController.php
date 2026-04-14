@@ -18,7 +18,7 @@ class ProductController extends Controller
         set_time_limit(180); // Prevent PHP from auto killing the script
         $request->validate(['file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:10240']);
         
-        $apiKey = env('GEMINI_API_KEY');
+        $apiKey = config('services.gemini.api_key') ?? env('GEMINI_API_KEY');
         if (!$apiKey) {
             return response()->json(['message' => 'Please configure GEMINI_API_KEY in .env file. Open AI Studio to generate a key.'], 400);
         }
