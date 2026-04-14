@@ -27,7 +27,13 @@ class ProductController extends Controller
         $base64 = base64_encode(file_get_contents($file->path()));
         $mimeType = $file->getClientMimeType();
 
-        $prompt = "You are an expert data extractor. Look at the attached invoice or product catalog image. Extract all the products into a strict JSON Array format. The JSON array should contain objects with these exact keys: 'title', 'brand', 'package_type' (e.g. Box, Packet), 'pieces_per_packet' (number), 'packets_per_peti' (number), 'selling_price_packet' (number), 'stock' (number). If you can't find a field, leave it empty. Respond ONLY with the JSON array, no markdown and no extra text.";
+        $prompt = "You are an expert data extractor. Look at the attached invoice, product catalog image, or handwritten bill. Invoices have completely different column structures varying by seller. Your job is to semantically translate whatever format they used into our strict JSON format! 
+        MAPPING RULES:
+        1. If bill says 'Item', 'Particulars', 'Name' -> map to 'title'.
+        2. If bill says 'Rate', 'Price', 'Amount' -> map to 'selling_price_packet'.
+        3. If bill says 'Qty', 'Quantity', 'Boxes' -> map to 'stock'.
+        4. Extract 'brand', 'package_type' (e.g. Box, Packet), 'pieces_per_packet', 'packets_per_peti' ONLY if visible, else keep them empty.
+        Respond ONLY with a strict JSON Array of objects containing these exact keys: 'title', 'brand', 'package_type', 'pieces_per_packet', 'packets_per_peti', 'selling_price_packet', 'stock'. Do not use markdown and output pure JSON.";
 
         $data = [
             "contents" => [

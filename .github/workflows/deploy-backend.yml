@@ -92,6 +92,13 @@ jobs:
             sed -i "s/DB_USERNAME=.*/DB_USERNAME=admin/" .env
             sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=${{ secrets.DB_PASSWORD }}/" .env
 
+            # Add Gemini API Key automatically from GitHub Secrets
+            if grep -q "GEMINI_API_KEY=" .env; then
+              sed -i "s|GEMINI_API_KEY=.*|GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}|" .env
+            else
+              echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
+            fi
+
             # Fix for subpath hosting: Create a symlink so Nginx 'root' works for /api
             mkdir -p public
             cd public
