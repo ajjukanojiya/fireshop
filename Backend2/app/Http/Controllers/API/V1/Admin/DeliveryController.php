@@ -8,7 +8,9 @@ use Illuminate\Http\Request;
 use App\Models\Delivery;
 use App\Models\Order;
 use App\Models\User;
+use App\Models\WalletTransaction;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DeliveryController extends Controller
 {
@@ -58,18 +60,33 @@ class DeliveryController extends Controller
 
         $user = Auth::user();
         $delivery = Delivery::where('id', $id)->where('user_id', $user->id)->firstOrFail();
+        $oldStatus = $delivery->status;
 
-        $delivery->update([
-            'status' => $request->status,
-            'proof_image' => $request->proof_image ?? $delivery->proof_image,
-            'collected_amount' => $request->status == 'delivered' ? $request->collected_amount : null
-        ]);
+        DB::transaction(function() use ($request, $delivery, $user, $oldStatus) {
+            $delivery->update([
+                'status' => $request->status,
+                'proof_image' => $request->proof_image ?? $delivery->proof_image,
+                'collected_amount' => $request->status == 'delivered' ? $request->collected_amount : null
+            ]);
 
-        // Optional: Update main order status too
-        if($request->status === 'delivered') {
-             $delivery->order->update(['status' => 'delivered']);
-             // We can also mark payment as paid if full amount collected, but keeping it simple for now as per plan
-        }
+            // Agar order pehli baar 'delivered' ho raha hai
+            if ($request->status === 'delivered' && $oldStatus !== 'delivered') {
+                // Main order ka status update karein
+                $delivery->order->update(['status' => 'delivered']);
+                
+                // DELIVERY BOY KE WALLET MEIN PAISE JODEIN
+                if ($request->collected_amount > 0) {
+                    WalletTransaction::create([
+                        'user_id' => $user->id,
+                        'type' => 'credit',
+                        'amount' => $request->collected_amount,
+                        'description' => "Cash collected for Order #{$delivery->order_id}",
+                    ]);
+                    
+                    $user->increment('wallet_balance', $request->collected_amount);
+                }
+            }
+        });
 
         return response()->json(['message' => 'Delivery status updated', 'data' => $delivery]);
     }
