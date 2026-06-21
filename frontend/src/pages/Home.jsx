@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import api from "../api/api";
-import Header from "../components/Header";
 import CategoryChips from "../components/CategoryChips";
 import ProductCard from "../components/ProductCard";
+import { useCart } from "../contexts/CartContext";
+import { useToast } from "../contexts/ToastContext";
 
 export default function Home() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selected, setSelected] = useState(null);
-  const [featuredIndex, setFeaturedIndex] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
+  const navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
@@ -20,37 +21,18 @@ export default function Home() {
           api.get('/products'),
           api.get('/categories')
         ]);
-
         const list = prodRes.data?.data || prodRes.data;
         setProducts(Array.isArray(list) ? list : []);
-
         const catData = catRes.data?.data || catRes.data;
-        if (Array.isArray(catData)) {
-          setCategories(catData); // Store full category objects
-        } else {
-          setCategories([]);
-        }
+        setCategories(Array.isArray(catData) ? catData : []);
 
-        // Initialize from URL param
         const catId = searchParams.get("category");
-        if (catId) {
-          setSelected(parseInt(catId));
-        }
-
+        if (catId) setSelected(parseInt(catId));
       } catch (e) { console.error("Failed to load data", e); }
     })();
   }, []);
 
   const featured = products.filter(p => Number(p.is_featured) === 1);
-
-  // Auto-slide featured products
-  useEffect(() => {
-    if (featured.length <= 1) return;
-    const timer = setInterval(() => {
-      setFeaturedIndex(prev => (prev + 1) % featured.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [featured.length]);
 
   const filtered = products.filter(p => {
     const matchesCategory = selected ? p.category_id === selected : true;
@@ -60,10 +42,6 @@ export default function Home() {
     ) : true;
     return matchesCategory && matchesSearch;
   });
-
-  const onQuickView = (product) => {
-    window.location.href = `/product/${product.id}`;
-  };
 
   const getFullUrl = (url) => {
     if (!url) return "";
@@ -75,184 +53,130 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fcfcfc] text-slate-900 selection:bg-red-100 selection:text-red-600">
+    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-gray-900 selection:text-white">
+      
+      {/* 1. MULTI-VIDEO SHOWCASE HERO */}
+      {featured.length > 0 && !searchQuery && !selected && (
+        <section className="bg-[#050505] pt-12 pb-10 border-b border-gray-900 overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            
+            {/* Minimal Header */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-1">Trending Now</h1>
+                <p className="text-sm text-gray-400 font-medium">Discover our most spectacular additions.</p>
+              </div>
+              <div className="hidden md:flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-widest">
+                <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                Live Showcase
+              </div>
+            </div>
 
-      {/* Hero Section - Ultra Premium Stage */}
-      <section className="relative min-h-[70vh] lg:min-h-[85vh] flex items-center overflow-hidden bg-[#050505] text-white">
-        {/* Dynamic Ambient Background - Royal Ruby Tint */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[radial-gradient(circle_at_center,rgba(153,27,27,0.18)_0%,transparent_70%)] opacity-60" />
-          <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
-          {/* Animated Glow Orbs - Ruby Theme */}
-          <div className="absolute top-[20%] right-[10%] w-96 h-96 bg-red-900/20 rounded-full blur-[100px] animate-pulse" />
-          <div className="absolute bottom-[20%] left-[5%] w-[30rem] h-[30rem] bg-slate-900/20 rounded-full blur-[120px]" />
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 relative z-10 w-full py-10 lg:py-20">
-          {featured.length > 0 ? (
-            <div className="relative">
-              {featured.map((p, idx) => (
-                <div
-                  key={p.id}
-                  className={`flex flex-col lg:flex-row items-center gap-16 transition-all duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)] ${idx === featuredIndex ? 'opacity-100 scale-100 relative' : 'opacity-0 scale-95 absolute inset-0 pointer-events-none'}`}
+            {/* Video Wall: Horizontal Scroll on Mobile, Grid on Desktop */}
+            <div className="flex overflow-x-auto gap-4 md:gap-6 pb-6 snap-x snap-mandatory no-scrollbar md:grid md:grid-cols-3 lg:grid-cols-4">
+              {featured.slice(0, 4).map(p => (
+                <div 
+                  key={p.id} 
+                  className="min-w-[70vw] sm:min-w-[45vw] md:min-w-0 snap-start flex-none relative group cursor-pointer flex flex-col"
+                  onClick={() => navigate(`/product/${p.id}`)}
                 >
-                  <div className="flex-1 space-y-8 text-center lg:text-left order-2 lg:order-1">
-                    <div className="inline-flex items-center gap-3 bg-white/5 backdrop-blur-2xl px-5 py-2 rounded-2xl border border-white/10 text-[10px] font-black uppercase tracking-[0.4em] text-[#991b1b] shadow-2xl">
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-900/50 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#991b1b]"></span>
-                      </span>
-                      Global Premiere
-                    </div>
-
-                    <div className="space-y-4">
-                      <h1 className="text-4xl md:text-6xl lg:text-8xl font-black tracking-tighter leading-[0.95] bg-gradient-to-b from-white via-white to-white/20 bg-clip-text text-transparent">
-                        {p.title}
-                      </h1>
-                      <div className="h-1 w-16 lg:w-24 bg-[#991b1b] rounded-full mx-auto lg:mx-0 shadow-[0_0_20px_rgba(153,27,27,0.5)]" />
-                    </div>
-
-                    <p className="text-lg md:text-xl lg:text-2xl text-white/40 max-w-xl mx-auto lg:mx-0 font-medium leading-relaxed tracking-tight">
-                      {p.description || "The pinnacle of pyrotechnic craftsmanship, designed for the most elite celebrations."}
-                    </p>
-
-                    <div className="flex flex-wrap gap-4 lg:gap-6 justify-center lg:justify-start items-center pt-2 lg:pt-4">
-                      <button
-                        onClick={() => onQuickView(p)}
-                        className="group relative bg-white text-black px-8 lg:px-12 py-4 lg:py-5 rounded-[2rem] font-black text-lg lg:text-xl transition-all hover:scale-105 active:scale-95 shadow-[0_30px_60px_rgba(255,255,255,0.1)] overflow-hidden"
-                      >
-                        <span className="relative z-10 flex items-center gap-3">
-                          Acquire Now <span className="text-2xl transition-transform group-hover:translate-x-2">→</span>
-                        </span>
-                        <div className="absolute inset-0 bg-gradient-to-r from-red-50 to-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </button>
-
-                      <div className="bg-white/5 backdrop-blur-3xl border border-white/10 px-8 py-4 rounded-[2rem] shadow-2xl flex flex-col">
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-1">Exclusive Value</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-3xl font-black">₹{p.price}</span>
-                          <span className="text-xs font-bold text-white/20">/ {p.inner_unit || 'Pack'}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {featured.length > 1 && (
-                      <div className="flex gap-4 justify-center lg:justify-start pt-10">
-                        {featured.map((_, dotIdx) => (
-                          <button
-                            key={dotIdx}
-                            onClick={() => setFeaturedIndex(dotIdx)}
-                            className={`h-2 rounded-full transition-all duration-700 ${dotIdx === featuredIndex ? 'bg-[#991b1b] w-16 shadow-[0_0_15px_rgba(153,27,27,0.6)]' : 'bg-white/10 w-4 hover:bg-white/25'}`}
-                          />
-                        ))}
-                      </div>
+                  {/* Media Aspect Container - Reels/Stories ratio */}
+                  <div className="aspect-[4/5] bg-gray-900 rounded-2xl overflow-hidden mb-4 border border-gray-800 relative shadow-2xl">
+                    {p.videos && p.videos[0] ? (
+                      <video autoPlay muted loop playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                        <source src={getFullUrl(p.videos[0].url)} type="video/mp4" />
+                      </video>
+                    ) : (
+                      <img src={p.thumbnail_url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={p.title} />
                     )}
-                  </div>
-
-                  <div className="flex-1 w-full max-w-4xl order-1 lg:order-2">
-                    <div className="relative group focus:outline-none">
-                      <div className="absolute -inset-10 bg-[#991b1b]/20 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-                      <div className="relative aspect-[16/11] rounded-[3rem] overflow-hidden border border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.8)] bg-black group-hover:border-white/20 transition-colors duration-700">
-                        {p.videos && p.videos[0] ? (
-                          <video
-                            key={p.videos[0].url}
-                            autoPlay muted loop playsInline
-                            className="w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-[2000ms]"
-                          >
-                            <source src={getFullUrl(p.videos[0].url)} type="video/mp4" />
-                          </video>
-
-                        ) : (
-                          <img src={p.thumbnail_url} className="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-[2000ms]" alt={p.title} />
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-tr from-black/60 via-transparent to-transparent pointer-events-none" />
-                      </div>
-                      <div className="absolute -bottom-6 -right-6 lg:-right-10 bg-[#991b1b] text-white px-8 py-4 rounded-[1.5rem] shadow-2xl skew-x-[-6deg] hidden sm:block">
-                        <span className="block text-[10px] font-black uppercase tracking-widest text-white/50">Heritage Quality</span>
-                        <span className="text-xl font-black">Hand-Crafted</span>
+                    
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+                    
+                    {/* Hover indicator */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/20 backdrop-blur-[2px]">
+                      <div className="bg-white/90 text-black px-6 py-2.5 rounded-full font-bold text-sm transform translate-y-4 group-hover:translate-y-0 transition-transform">
+                        View Product
                       </div>
                     </div>
+                  </div>
+                  
+                  {/* Minimal Text Info */}
+                  <div className="flex justify-between items-start px-1">
+                    <div className="flex-1 pr-3">
+                      <h3 className="text-white font-semibold text-base line-clamp-1 group-hover:text-blue-400 transition-colors">{p.title}</h3>
+                      <p className="text-gray-500 text-xs mt-0.5 uppercase tracking-wider">{p.inner_unit || 'Premium Item'}</p>
+                    </div>
+                    <span className="text-white font-bold text-base whitespace-nowrap bg-white/10 px-2.5 py-1 rounded-lg">₹{p.price}</span>
                   </div>
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="text-center py-20 space-y-8">
-              <h1 className="text-6xl md:text-9xl font-black tracking-tighter leading-none">THE SPECTACLE</h1>
-              <p className="text-white/40 text-xl max-w-2xl mx-auto font-medium">Extraordinary celebrations deserve extraordinary light. Begin your journey.</p>
-              <button onClick={() => document.getElementById('shop').scrollIntoView({ behavior: 'smooth' })} className="bg-[#991b1b] px-16 py-6 rounded-[2rem] font-black text-xl hover:bg-[#7f1d1d] transition-all shadow-[0_20px_50px_rgba(153,27,27,0.3)]">Enter Showroom</button>
+
+          </div>
+        </section>
+      )}
+
+      {/* 2. SLIM TRUST BAR */}
+      {!searchQuery && !selected && (
+        <div className="border-b border-gray-100 bg-gray-50 py-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-[11px] font-bold text-gray-500 uppercase tracking-widest">
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Premium Quality
+              </div>
+              <div className="hidden sm:block w-1 h-1 rounded-full bg-gray-300"></div>
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Express Delivery
+              </div>
+              <div className="hidden md:block w-1 h-1 rounded-full bg-gray-300"></div>
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                Secure Checkout
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. CATALOG & FILTERS */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pb-24 pt-8" id="shop-grid">
+        
+        {/* Sleek Filtering Header */}
+        <div className="sticky top-[70px] z-30 bg-white/90 backdrop-blur-xl py-4 mb-8 border-b border-gray-100">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <CategoryChips categories={categories} selected={selected} onSelect={setSelected} />
+            
+            <div className="flex items-center gap-4">
+               <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">{filtered.length} Items Found</span>
+            </div>
+          </div>
+          
+          {searchQuery && (
+            <div className="mt-4 flex items-center gap-3">
+              <span className="text-xl font-bold text-gray-900 tracking-tight">Search Results for "{searchQuery}"</span>
+              <button onClick={() => setSearchParams({})} className="text-sm font-medium text-gray-500 hover:text-gray-900 underline underline-offset-4">Clear Search</button>
             </div>
           )}
         </div>
-      </section>
 
-      <main className="max-w-7xl mx-auto px-4 py-16" id="shop">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-
-          {/* Enhanced Sticky Sidebar */}
-          <aside className="lg:col-span-3">
-            <div className="sticky top-28 space-y-8">
-              <div>
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Browse by Scene</h3>
-                <CategoryChips categories={categories} selected={selected} onSelect={setSelected} />
-              </div>
-
-              {/* Modern Promo Card - Midnight Slate theme */}
-              <div className="group relative overflow-hidden rounded-[2rem] bg-[#0f172a] p-8 text-white shadow-xl">
-                <div className="absolute -top-12 -right-12 w-32 h-32 bg-white/5 rounded-full blur-2xl transition-transform group-hover:scale-150" />
-                <h4 className="text-2xl font-black mb-2 leading-tight uppercase tracking-tight">Premium <br />Gifting</h4>
-                <p className="text-slate-400 text-sm mb-6 leading-relaxed">Elegant curated boxes for your most distinguished guests.</p>
-                <button className="bg-[#991b1b] text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#7f1d1d] transition-all">Explore</button>
-              </div>
-
-              <div className="bg-white border border-slate-100 rounded-[2rem] p-8">
-                <div className="flex items-center gap-4 mb-4 text-[#d97706]">
-                  <span className="text-2xl">⚡</span>
-                  <span className="text-xs font-black uppercase tracking-widest">Express Service</span>
-                </div>
-                <p className="text-slate-400 text-xs leading-relaxed font-medium">Next-day delivery guaranteed for all premium boutique orders.</p>
-              </div>
-            </div>
-          </aside>
-
-          {/* Product Grid Area */}
-          <div className="lg:col-span-9">
-            <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 pb-6 border-b border-slate-100">
-              <div>
-                <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-                  {searchQuery ? `Search: ${searchQuery}` : (selected ? categories.find(c => c.id === selected)?.name : 'All Collection')}
-                </h2>
-                <p className="text-slate-400 text-sm font-medium mt-1">Showing {filtered.length} premium selections</p>
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchParams({})}
-                    className="text-[#991b1b] text-xs font-black mt-3 hover:underline underline-offset-4 uppercase tracking-widest"
-                  >
-                    Clear Search
-                  </button>
-                )}
-              </div>
-              <div className="flex items-center gap-2 text-slate-400 text-[10px] font-black uppercase tracking-widest">
-                Sort by: <span className="text-[#991b1b] cursor-pointer hover:underline underline-offset-8 transition-colors">Featured First</span>
-              </div>
-            </header>
-
-            {filtered.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filtered.map(p => <ProductCard key={p.id} product={p} onQuickView={onQuickView} />)}
-              </div>
-            ) : (
-              <div className="text-center py-20 bg-white rounded-[2.5rem] border-2 border-dashed border-slate-100">
-                <div className="text-5xl mb-4">🔍</div>
-                <p className="text-slate-400 text-lg font-medium">We couldn't find items matching your request.</p>
-                <button onClick={() => setSelected(null)} className="mt-4 text-[#991b1b] font-black uppercase text-xs tracking-widest hover:underline underline-offset-8">Return to Boutique</button>
-              </div>
-            )}
+        {/* Product Grid */}
+        {filtered.length > 0 ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-10 sm:gap-x-6">
+            {filtered.map(p => <ProductCard key={p.id} product={p} onQuickView={() => navigate(`/product/${p.id}`)} />)}
           </div>
-        </div>
+        ) : (
+          <div className="py-20 flex flex-col items-center justify-center text-center">
+            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4M12 20V4" /></svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Nothing Found</h3>
+            <p className="text-gray-500 text-sm font-medium">Try adjusting your category or search filters.</p>
+          </div>
+        )}
       </main>
-
-
+      
     </div>
   );
 }

@@ -121,7 +121,16 @@ export default function AdminOrders() {
                             <tr><td colSpan="6" className="text-center py-8">No orders found.</td></tr>
                         ) : orders.map(order => (
                             <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-                                <td className="px-6 py-4 font-mono font-medium text-gray-900">#{order.id}</td>
+                                <td className="px-6 py-4 font-mono font-medium text-gray-900">
+                                    #{order.id}
+                                    {order.items?.some(item => item.product?.is_bundle) && (
+                                        <div className="mt-1">
+                                            <span className="bg-purple-100 text-purple-800 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                                                📦 Contains Pack
+                                            </span>
+                                        </div>
+                                    )}
+                                </td>
                                 <td className="px-6 py-4">
                                     <p className="font-medium text-gray-900">{order.user?.name || 'Guest'}</p>
                                     <p className="text-xs text-slate-500 font-bold">{order.user?.phone || order.guest_phone || 'No Phone'}</p>
@@ -234,7 +243,14 @@ export default function AdminOrders() {
                         <div className="flex justify-between items-start">
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Priority Order</span>
-                                <h3 className="font-black text-xl text-slate-900 leading-none">#{order.id}</h3>
+                                <div className="flex items-center gap-2">
+                                    <h3 className="font-black text-xl text-slate-900 leading-none">#{order.id}</h3>
+                                    {order.items?.some(item => item.product?.is_bundle) && (
+                                        <span className="bg-purple-100 text-purple-800 text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap border border-purple-200">
+                                            📦 Pack
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                             <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${statusColors[order.status] || 'bg-slate-100 text-slate-400'}`}>
                                 {order.status}
@@ -360,27 +376,48 @@ export default function AdminOrders() {
                             )}
 
                             {selectedOrderItems.map((item, idx) => (
-                                <div key={item.id || idx} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                    <div className="w-16 h-16 bg-white rounded-xl border border-slate-200 overflow-hidden flex-shrink-0">
-                                        <img src={item.product?.thumbnail_url} alt={item.product?.title} className="w-full h-full object-cover" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="font-black text-slate-800 leading-tight">{item.product?.title}</h4>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-[10px] font-black text-slate-400 uppercase bg-white px-2 py-0.5 rounded border border-slate-200">
-                                                {item.product?.inner_unit || 'Packet'}
-                                            </span>
-                                            <span className="text-xs font-bold text-slate-500">₹{Number(item.unit_price || item.price || 0).toLocaleString()} / {item.product?.inner_unit || 'Packet'}</span>
+                                <div key={item.id || idx} className="flex flex-col gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-16 h-16 bg-white rounded-xl border border-slate-200 overflow-hidden flex-shrink-0">
+                                            <img src={item.product?.thumbnail_url} alt={item.product?.title} className="w-full h-full object-cover" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h4 className="font-black text-slate-800 leading-tight">{item.product?.title}</h4>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-[10px] font-black text-slate-400 uppercase bg-white px-2 py-0.5 rounded border border-slate-200">
+                                                    {item.product?.inner_unit || 'Packet'}
+                                                </span>
+                                                <span className="text-xs font-bold text-slate-500">₹{Number(item.unit_price || item.price || 0).toLocaleString()} / {item.product?.inner_unit || 'Packet'}</span>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Quantity</div>
+                                            <div className="text-xl font-black text-slate-900">{item.quantity}</div>
+                                        </div>
+                                        <div className="text-right min-w-[80px]">
+                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Total</div>
+                                            <div className="text-lg font-black text-red-600">₹{(Number(item.quantity) * Number(item.unit_price || item.price || 0)).toLocaleString()}</div>
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Quantity</div>
-                                        <div className="text-xl font-black text-slate-900">{item.quantity}</div>
-                                    </div>
-                                    <div className="text-right min-w-[80px]">
-                                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Total</div>
-                                        <div className="text-lg font-black text-red-600">₹{(Number(item.quantity) * Number(item.unit_price || item.price || 0)).toLocaleString()}</div>
-                                    </div>
+                                    
+                                    {/* Sub-items for Combo Pack */}
+                                    {item.product?.is_bundle && item.product?.bundle_items?.length > 0 && (
+                                        <div className="ml-20 bg-purple-50 rounded-xl p-3 border border-purple-100 shadow-inner">
+                                            <div className="text-[10px] font-black text-purple-800 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                                <span>📦 Inside this pack (To give: Qty x {item.quantity})</span>
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                {item.product.bundle_items.map((bItem, bIdx) => (
+                                                    <div key={bIdx} className="flex justify-between items-center bg-white px-3 py-2 rounded-lg border border-purple-100 shadow-sm">
+                                                        <span className="text-xs font-bold text-slate-800">{bItem.product?.title || 'Unknown Item'}</span>
+                                                        <span className="text-[10px] font-black text-purple-700 bg-purple-100 px-2 py-1 rounded border border-purple-200">
+                                                            {bItem.quantity} x {item.quantity} = {bItem.quantity * item.quantity} pcs
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>

@@ -145,6 +145,34 @@ export default function Product() {
 
               <p className="text-gray-600 leading-relaxed mb-8 text-lg">{p.description || "No description available for this product."}</p>
 
+              {p.is_bundle && p.bundle_items && p.bundle_items.length > 0 && (
+                <div className="mb-8 p-6 bg-purple-50 rounded-2xl border border-purple-100 shadow-inner">
+                  <h3 className="text-xs font-black text-purple-800 uppercase tracking-[0.1em] mb-4">✨ What's Inside This Family Pack</h3>
+                  <div className="space-y-3">
+                    {p.bundle_items.map((item, idx) => (
+                      <div key={idx} className="flex justify-between items-center bg-white p-3 rounded-xl border border-purple-100 shadow-sm">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 border border-gray-100">
+                            {item.product?.thumbnail_url ? (
+                              <img src={getFullUrl(item.product.thumbnail_url)} className="w-full h-full object-cover" alt={item.product.title} />
+                            ) : (
+                              <span className="w-full h-full flex items-center justify-center text-xs text-gray-400 font-bold">Item</span>
+                            )}
+                          </div>
+                          <div>
+                            <span className="font-bold text-slate-800 block leading-tight">{item.product?.title || 'Unknown Item'}</span>
+                            <span className="text-[10px] text-gray-400 font-bold uppercase">{item.product?.size || ''}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-center bg-purple-100 text-purple-700 font-black text-sm px-3 py-1.5 rounded-lg border border-purple-200">
+                          {item.quantity} pc
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="flex flex-col sm:flex-row gap-4 mt-auto">
                 <button
                   onClick={handleAddToCart}

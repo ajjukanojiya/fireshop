@@ -7,7 +7,7 @@ export const useUser = () => useContext(UserContext);
 
 export function UserProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!!localStorage.getItem("token"));
 
   // load user from backend (expects GET /auth/me or change path)
   const loadUser = async () => {

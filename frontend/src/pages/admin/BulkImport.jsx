@@ -12,7 +12,24 @@ export default function BulkImport({ onCancel, onSuccess }) {
     
     // For media uploading to a specific row
     const [activeRowIndex, setActiveRowIndex] = useState(null);
+    const [isResetting, setIsResetting] = useState(false);
     const fileInputRef = useRef(null);
+
+    const handleResetDatabase = async () => {
+        if (!window.confirm("WARNING: This will wipe out all existing data and reset it to standard professional demo data! Only Admins can do this. Are you absolutely sure?")) {
+            return;
+        }
+        setIsResetting(true);
+        try {
+            const res = await api.post('/admin/system/reset-demo-database');
+            alert("Success: " + res.data.message);
+            window.location.reload();
+        } catch (error) {
+            alert("Error resetting database: " + (error.response?.data?.message || error.message));
+        } finally {
+            setIsResetting(false);
+        }
+    };
 
     useEffect(() => {
         api.get('/admin/categories').then(res => setCategories(res.data)).catch(console.error);
@@ -139,6 +156,12 @@ export default function BulkImport({ onCancel, onSuccess }) {
         }]);
     };
 
+    const deleteRow = (index) => {
+        const newData = [...data];
+        newData.splice(index, 1);
+        setData(newData);
+    };
+
     const handleDataChange = (index, field, value) => {
         const newData = [...data];
         newData[index][field] = value;
@@ -223,7 +246,16 @@ export default function BulkImport({ onCancel, onSuccess }) {
                     </h2>
                     <p className="text-gray-500 text-sm mt-1">Easily upload multiple products at once from Excel/CSV and attach visual media.</p>
                 </div>
-                <button onClick={onCancel} className="text-gray-500 hover:bg-gray-100 p-2 rounded-lg">✕</button>
+                <div className="flex items-center gap-4">
+                    <button 
+                        onClick={handleResetDatabase} 
+                        disabled={isResetting}
+                        className="text-white bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-bold text-sm shadow transition-colors"
+                    >
+                        {isResetting ? 'Resetting...' : '⚠️ Reset Demo Database'}
+                    </button>
+                    <button onClick={onCancel} className="text-gray-500 hover:bg-gray-100 p-2 rounded-lg">✕</button>
+                </div>
             </div>
 
             {step === 1 && (
@@ -317,6 +349,7 @@ export default function BulkImport({ onCancel, onSuccess }) {
                                     <th className="p-3">S. Price</th>
                                     <th className="p-3">Stock</th>
                                     <th className="p-3 text-center">Media (Img/Vid)</th>
+                                    <th className="p-3 text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
@@ -348,6 +381,11 @@ export default function BulkImport({ onCancel, onSuccess }) {
                                                     `📎 ${row.thumbnail ? 1 : 0} Thmb, ${row.images.length} Img, ${row.videos.length} Vid` : 
                                                     "+ Attach Media"
                                                 }
+                                            </button>
+                                        </td>
+                                        <td className="p-3 text-center">
+                                            <button onClick={() => deleteRow(i)} className="text-red-500 hover:bg-red-50 p-1.5 rounded" title="Delete Row">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
                                             </button>
                                         </td>
                                     </tr>

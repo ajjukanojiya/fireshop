@@ -1,9 +1,9 @@
 export default function CategoryChips({ categories = [], selected, onSelect }) {
   return (
-    <div className="flex gap-3 overflow-x-auto pb-4 md:pb-2 md:flex-wrap no-scrollbar scroll-smooth px-1">
+    <div className="flex gap-2 overflow-x-auto pb-2 md:flex-wrap no-scrollbar scroll-smooth">
       <button
         onClick={() => onSelect(null)}
-        className={`whitespace-nowrap px-6 py-2.5 rounded-full border text-sm font-black transition-all duration-300 ${!selected ? 'bg-gradient-to-r from-[#991b1b] to-[#7f1d1d] text-white border-transparent shadow-xl shadow-red-900/20 transform scale-105' : 'bg-white text-slate-500 border-slate-100 hover:border-[#991b1b]/30 hover:text-[#991b1b] shadow-sm'}`}
+        className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors border ${!selected ? 'bg-gray-900 text-white border-gray-900 shadow-sm' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
       >
         All Products
       </button>
@@ -11,7 +11,7 @@ export default function CategoryChips({ categories = [], selected, onSelect }) {
         <button
           key={c.id}
           onClick={() => onSelect(c.id)}
-          className={`whitespace-nowrap px-6 py-2.5 rounded-full border text-sm font-black transition-all duration-300 ${selected === c.id ? 'bg-gradient-to-r from-[#991b1b] to-[#7f1d1d] text-white border-transparent shadow-xl shadow-red-900/20 transform scale-105' : 'bg-white text-slate-500 border-slate-100 hover:border-[#991b1b]/30 hover:text-[#991b1b] shadow-sm'}`}
+          className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors border ${selected === c.id ? 'bg-gray-900 text-white border-gray-900 shadow-sm' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
         >
           {c.name}
         </button>

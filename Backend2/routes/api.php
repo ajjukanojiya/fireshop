@@ -91,7 +91,11 @@ foreach ($prefixes as $p) {
                 Route::get('/export', [\App\Http\Controllers\API\V1\Admin\OnlinePaymentController::class, 'export']);
                 Route::get('/{id}', [\App\Http\Controllers\API\V1\Admin\OnlinePaymentController::class, 'show']);
             });
+
+            // Demo Database Reset
+            Route::post('system/reset-demo-database', [\App\Http\Controllers\API\V1\Admin\SystemController::class, 'resetDatabase']);
         });
+
 
         // Delivery Boy Routes
         Route::prefix('delivery')->middleware(['auth:sanctum'])->group(function () {

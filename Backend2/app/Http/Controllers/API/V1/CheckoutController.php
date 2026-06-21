@@ -47,8 +47,8 @@ class CheckoutController extends Controller
             'zip' => $request->address['zip'] ?? $user->zip,
         ]);
 
-        // load user's cart items with product relation
-        $cartItems = CartItem::where('user_id', $user->id)->with('product')->get();
+        // load user's cart items with product relation and bundle relation
+        $cartItems = CartItem::where('user_id', $user->id)->with('product.bundleItems.product')->get();
 
         if ($cartItems->isEmpty()) {
             return response()->json(['message' => 'Cart is empty'], 422);
@@ -63,8 +63,16 @@ class CheckoutController extends Controller
                 if (!$ci->product) {
                     throw new \Exception("Product not found for cart item {$ci->id}");
                 }
-                if ($ci->product->stock < $ci->quantity) {
-                    throw new \Exception("Insufficient stock for product: {$ci->product->title}");
+                if ($ci->product->is_bundle) {
+                    foreach ($ci->product->bundleItems as $bItem) {
+                        if ($bItem->product->stock < ($bItem->quantity * $ci->quantity)) {
+                            throw new \Exception("Insufficient stock for bundle item: {$bItem->product->title} inside {$ci->product->title}");
+                        }
+                    }
+                } else {
+                    if ($ci->product->stock < $ci->quantity) {
+                        throw new \Exception("Insufficient stock for product: {$ci->product->title}");
+                    }
                 }
                 $total += $ci->product->price * $ci->quantity;
             }
@@ -123,7 +131,13 @@ class CheckoutController extends Controller
                 ]);
 
                 // decrement stock (use decrement to avoid race if needed)
-                $ci->product->decrement('stock', $ci->quantity);
+                if ($ci->product->is_bundle) {
+                    foreach ($ci->product->bundleItems as $bItem) {
+                        $bItem->product->decrement('stock', $bItem->quantity * $ci->quantity);
+                    }
+                } else {
+                    $ci->product->decrement('stock', $ci->quantity);
+                }
             }
 
             // **NEW: Log Payment Transaction for COD**
@@ -307,13 +321,21 @@ class CheckoutController extends Controller
             return response()->json(['message' => 'product_id missing in items'], 422);
         }
 
-        $product = Product::lockForUpdate()->find($pid); // lock row to avoid race
+        $product = Product::with('bundleItems.product')->lockForUpdate()->find($pid); // lock row to avoid race
         if (!$product) {
             return response()->json(['message' => "Product ID {$pid} not found"], 404);
         }
 
-        if ($product->stock < $qty) {
-            return response()->json(['message' => "Insufficient stock for product: {$product->title}"], 422);
+        if ($product->is_bundle) {
+            foreach ($product->bundleItems as $bItem) {
+                if ($bItem->product->stock < ($bItem->quantity * $qty)) {
+                    return response()->json(['message' => "Insufficient stock for bundle item: {$bItem->product->title} inside {$product->title}"], 422);
+                }
+            }
+        } else {
+            if ($product->stock < $qty) {
+                return response()->json(['message' => "Insufficient stock for product: {$product->title}"], 422);
+            }
         }
 
         $price = $product->price ?? 0;
@@ -395,7 +417,14 @@ class CheckoutController extends Controller
 
             // decrement stock for each product (use decrements to be safe)
             foreach ($productsToUpdate as $p) {
-                $p['product']->decrement('stock', $p['qty']);
+                $productModel = $p['product'];
+                if ($productModel->is_bundle) {
+                    foreach ($productModel->bundleItems as $bItem) {
+                        $bItem->product->decrement('stock', $bItem->quantity * $p['qty']);
+                    }
+                } else {
+                    $productModel->decrement('stock', $p['qty']);
+                }
             }
 
             // **NEW: Log Payment Transaction for Guest COD**

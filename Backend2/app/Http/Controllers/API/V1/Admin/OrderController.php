@@ -12,7 +12,7 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         // Eager load user and delivery info (including the delivery boy user details)
-        $query = Order::with(['user', 'delivery.deliveryBoy', 'items.product'])->latest();
+        $query = Order::with(['user', 'delivery.deliveryBoy', 'items.product.bundleItems.product'])->latest();
         
         if ($request->has('status')) {
             $query->where('status', $request->status);
@@ -24,7 +24,7 @@ class OrderController extends Controller
 
     public function show($id)
     {
-        $order = Order::with(['user', 'items.product'])->findOrFail($id);
+        $order = Order::with(['user', 'items.product.bundleItems.product'])->findOrFail($id);
         return response()->json($order);
     }
 

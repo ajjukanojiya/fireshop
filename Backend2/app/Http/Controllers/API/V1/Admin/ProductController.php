@@ -107,7 +107,7 @@ class ProductController extends Controller
     }
     public function index()
     {
-        $products = Product::with(['category', 'images', 'videos'])->latest()->paginate(10);
+        $products = Product::with(['category', 'images', 'videos', 'bundleItems.product'])->latest()->paginate(10);
         return response()->json($products);
     }
 
@@ -135,6 +135,8 @@ class ProductController extends Controller
             'gst_percentage' => 'nullable|numeric',
             'video_downloadable' => 'nullable|boolean',
             'is_featured' => 'nullable|boolean',
+            'is_bundle' => 'nullable|boolean',
+            'bundle_items' => 'nullable|string',
             'thumbnail' => 'nullable|image|max:5120',
             'images.*' => 'nullable|image|max:5120',
             'videos.*' => 'nullable|mimes:mp4,mov,avi,mkv,webm|max:51200',
@@ -165,6 +167,18 @@ class ProductController extends Controller
             $product = Product::create($validated);
         }
 
+        if ($request->has('is_bundle') && $request->is_bundle && $request->has('bundle_items')) {
+            $items = json_decode($request->bundle_items, true);
+            if (is_array($items)) {
+                foreach ($items as $item) {
+                    $product->bundleItems()->create([
+                        'product_id' => $item['product_id'],
+                        'quantity' => $item['quantity'] ?? 1
+                    ]);
+                }
+            }
+        }
+
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $path = $image->store('products', 'public');
@@ -184,7 +198,7 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $product = Product::with(['category', 'images', 'videos'])->findOrFail($id);
+        $product = Product::with(['category', 'images', 'videos', 'bundleItems.product'])->findOrFail($id);
         return response()->json($product);
     }
 
@@ -214,6 +228,8 @@ class ProductController extends Controller
             'gst_percentage' => 'nullable|numeric',
             'video_downloadable' => 'nullable|boolean',
             'is_featured' => 'nullable|boolean',
+            'is_bundle' => 'nullable|boolean',
+            'bundle_items' => 'nullable|string',
             'thumbnail' => 'nullable|image|max:5120',
             'images.*' => 'nullable|image|max:5120',
             'videos.*' => 'nullable|mimes:mp4,mov,avi,mkv,webm|max:51200',
@@ -233,6 +249,23 @@ class ProductController extends Controller
         }
 
         $product->update($validated);
+
+        if ($request->has('is_bundle')) {
+            if ($request->is_bundle && $request->has('bundle_items')) {
+                $product->bundleItems()->delete();
+                $items = json_decode($request->bundle_items, true);
+                if (is_array($items)) {
+                    foreach ($items as $item) {
+                        $product->bundleItems()->create([
+                            'product_id' => $item['product_id'],
+                            'quantity' => $item['quantity'] ?? 1
+                        ]);
+                    }
+                }
+            } elseif (!$request->is_bundle) {
+                $product->bundleItems()->delete();
+            }
+        }
 
         if ($request->hasFile('images')) {
             // REPLACE: Delete existing images

@@ -11,7 +11,7 @@ class ProductController extends Controller
   
     public function index() {
       try{
-        $products = Product::with('images','videos','category')->paginate(12);
+        $products = Product::with('images','videos','category', 'bundleItems.product')->paginate(12);
         return response()->json($products);
       }catch (\Exception $e) {
         // If an exception occurs, return a JSON response with the error message
@@ -19,7 +19,7 @@ class ProductController extends Controller
     }
       }
       public function show($id) {
-        $product = Product::with(['images','videos','category'])->find($id);
+        $product = Product::with(['images','videos','category', 'bundleItems.product'])->find($id);
         if (!$product) return response()->json(['message'=>'Not found'],404);
         return response()->json($product);
       }

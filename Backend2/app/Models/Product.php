@@ -13,10 +13,11 @@ class Product extends Model
         'brand', 'size', 'package_type', 'pieces_per_packet', 'packets_per_peti',
         'purchase_price', 'selling_price_peti', 'selling_price_packet', 'selling_price_piece',
         'noise_level', 'is_kids_safe', 'use_type', 'season',
-        'hsn_code', 'gst_percentage', 'video_downloadable', 'attributes'
+        'hsn_code', 'gst_percentage', 'video_downloadable', 'attributes', 'is_bundle'
     ];
     protected $casts = [
         'is_featured' => 'boolean',
+        'is_bundle' => 'boolean',
         'is_kids_safe' => 'boolean',
         'video_downloadable' => 'boolean',
         'json' => 'array'
@@ -26,4 +27,5 @@ class Product extends Model
     public function images(){ return $this->hasMany(ProductImage::class); }
     public function videos(){ return $this->hasMany(Video::class); }
     public function orderItems(){ return $this->hasMany(OrderItem::class); }
+    public function bundleItems(){ return $this->hasMany(BundleItem::class, 'bundle_id'); }
 }
