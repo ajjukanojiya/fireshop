@@ -23,6 +23,12 @@ class Product extends Model
         'json' => 'array'
     ];
 
+    public function getThumbnailUrlAttribute($value) {
+        if (!$value) return $value;
+        if (str_starts_with($value, 'http')) return $value;
+        return url($value);
+    }
+
     public function category(){ return $this->belongsTo(Category::class); }
     public function images(){ return $this->hasMany(ProductImage::class); }
     public function videos(){ return $this->hasMany(Video::class); }
