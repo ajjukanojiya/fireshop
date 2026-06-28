@@ -63,7 +63,6 @@ class MasterDemoSeeder extends Seeder
                 'user_id' => $customer1->id,
                 'total_amount' => 5500,
                 'status' => 'pending',
-                'address' => ['street' => '123 MG Road', 'city' => 'Mumbai', 'pincode' => '400001'],
                 'created_at' => Carbon::now()->subHours(2)
             ]);
 
@@ -79,7 +78,6 @@ class MasterDemoSeeder extends Seeder
                 'user_id' => $customer2->id,
                 'total_amount' => 2100,
                 'status' => 'shipped',
-                'address' => ['street' => '45 Andheri West', 'city' => 'Mumbai', 'pincode' => '400053'],
                 'created_at' => Carbon::now()->subDays(1)
             ]);
 
@@ -102,7 +100,6 @@ class MasterDemoSeeder extends Seeder
                 'user_id' => $customer1->id,
                 'total_amount' => 3200,
                 'status' => 'delivered',
-                'address' => ['street' => '123 MG Road', 'city' => 'Mumbai', 'pincode' => '400001'],
                 'created_at' => Carbon::now()->subDays(3)
             ]);
 
