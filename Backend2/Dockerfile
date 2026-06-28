@@ -21,7 +21,7 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN docker-php-ext-install pdo_mysql pdo_pgsql pgsql mbstring exif pcntl bcmath gd
 
 # Configure PHP upload limits
-RUN echo "upload_max_filesize = 100M\npost_max_size = 100M\nmemory_limit = 256M" > $PHP_INI_DIR/conf.d/uploads.ini
+RUN echo "upload_max_filesize = 100M\npost_max_size = 100M\nmemory_limit = 512M\nmax_execution_time = 300\nmax_input_time = 300" > $PHP_INI_DIR/conf.d/uploads.ini
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
@@ -50,4 +50,4 @@ RUN sed -i 's/80/${PORT}/g' /etc/apache2/sites-available/000-default.conf /etc/a
 
 EXPOSE ${PORT:-80}
 
-CMD php artisan migrate --force && apache2-foreground
+CMD rm -rf public/storage && php artisan storage:link && php artisan migrate --force && apache2-foreground
