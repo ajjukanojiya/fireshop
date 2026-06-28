@@ -70,7 +70,7 @@ class MasterDemoSeeder extends Seeder
                 'order_id' => $order1->id,
                 'product_id' => $products[0]->id,
                 'quantity' => 2,
-                'price' => $products[0]->price
+                'unit_price' => $products[0]->price
             ]);
 
             // Order 2: Shipped, COD - Assigned to Delivery Boy 1
@@ -85,7 +85,7 @@ class MasterDemoSeeder extends Seeder
                 'order_id' => $order2->id,
                 'product_id' => $products[1]->id,
                 'quantity' => 1,
-                'price' => $products[1]->price
+                'unit_price' => $products[1]->price
             ]);
 
             Delivery::create([
@@ -107,7 +107,7 @@ class MasterDemoSeeder extends Seeder
                 'order_id' => $order3->id,
                 'product_id' => $products[2]->id,
                 'quantity' => 4,
-                'price' => $products[2]->price
+                'unit_price' => $products[2]->price
             ]);
 
             Delivery::create([
