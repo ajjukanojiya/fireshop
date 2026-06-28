@@ -14,11 +14,24 @@ class OrderController extends Controller
         // Eager load user and delivery info (including the delivery boy user details)
         $query = Order::with(['user', 'delivery.deliveryBoy', 'items.product.bundleItems.product'])->latest();
         
-        if ($request->has('status')) {
+        if ($request->has('status') && $request->status != '') {
             $query->where('status', $request->status);
         }
 
-        $orders = $query->paginate(10);
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                  ->orWhere('guest_phone', 'like', "%{$search}%")
+                  ->orWhereHas('user', function($uq) use ($search) {
+                      $uq->where('name', 'ilike', "%{$search}%")
+                         ->orWhere('email', 'ilike', "%{$search}%")
+                         ->orWhere('phone', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $orders = $query->paginate(20);
         return response()->json($orders);
     }
 

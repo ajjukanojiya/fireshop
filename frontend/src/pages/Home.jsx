@@ -73,15 +73,15 @@ export default function Home() {
             </div>
 
             {/* Video Wall: Horizontal Scroll on Mobile, Grid on Desktop */}
-            <div className="flex overflow-x-auto gap-4 md:gap-6 pb-6 snap-x snap-mandatory no-scrollbar md:grid md:grid-cols-3 lg:grid-cols-4">
+            <div className="flex overflow-x-auto gap-3 md:gap-6 pb-6 snap-x snap-mandatory no-scrollbar md:grid md:grid-cols-3 lg:grid-cols-4 px-1">
               {featured.slice(0, 4).map(p => (
                 <div 
                   key={p.id} 
-                  className="min-w-[70vw] sm:min-w-[45vw] md:min-w-0 snap-start flex-none relative group cursor-pointer flex flex-col"
+                  className="min-w-[65vw] sm:min-w-[40vw] md:min-w-0 snap-center flex-none relative group cursor-pointer flex flex-col"
                   onClick={() => navigate(`/product/${p.id}`)}
                 >
                   {/* Media Aspect Container - Reels/Stories ratio */}
-                  <div className="aspect-[4/5] bg-gray-900 rounded-2xl overflow-hidden mb-4 border border-gray-800 relative shadow-2xl">
+                  <div className="aspect-[4/5] bg-gray-900 rounded-[1.25rem] overflow-hidden mb-3 border border-gray-800 relative shadow-2xl">
                     {p.videos && p.videos[0] ? (
                       <video autoPlay muted loop playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
                         <source src={getFullUrl(p.videos[0].url)} type="video/mp4" />
@@ -90,23 +90,23 @@ export default function Home() {
                       <img src={p.thumbnail_url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={p.title} />
                     )}
                     
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none" />
                     
                     {/* Hover indicator */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/20 backdrop-blur-[2px]">
-                      <div className="bg-white/90 text-black px-6 py-2.5 rounded-full font-bold text-sm transform translate-y-4 group-hover:translate-y-0 transition-transform">
+                      <div className="bg-white/90 text-black px-6 py-2.5 rounded-full font-bold text-sm transform translate-y-4 group-hover:translate-y-0 transition-transform shadow-lg">
                         View Product
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Minimal Text Info */}
-                  <div className="flex justify-between items-start px-1">
-                    <div className="flex-1 pr-3">
-                      <h3 className="text-white font-semibold text-base line-clamp-1 group-hover:text-blue-400 transition-colors">{p.title}</h3>
-                      <p className="text-gray-500 text-xs mt-0.5 uppercase tracking-wider">{p.inner_unit || 'Premium Item'}</p>
+
+                    {/* Bottom Info Overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4 flex justify-between items-end">
+                      <div className="flex-1 pr-3">
+                        <h3 className="text-white font-bold text-base line-clamp-1 drop-shadow-md">{p.title}</h3>
+                        <p className="text-gray-300 text-[10px] mt-0.5 uppercase tracking-widest font-semibold">{p.inner_unit || 'Premium Item'}</p>
+                      </div>
+                      <span className="text-black font-extrabold text-sm whitespace-nowrap bg-white px-3 py-1.5 rounded-xl shadow-md">₹{p.price}</span>
                     </div>
-                    <span className="text-white font-bold text-base whitespace-nowrap bg-white/10 px-2.5 py-1 rounded-lg">₹{p.price}</span>
                   </div>
                 </div>
               ))}
@@ -163,7 +163,7 @@ export default function Home() {
 
         {/* Product Grid */}
         {filtered.length > 0 ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-10 sm:gap-x-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 gap-y-6 sm:gap-4 md:gap-x-6 md:gap-y-10">
             {filtered.map(p => <ProductCard key={p.id} product={p} onQuickView={() => navigate(`/product/${p.id}`)} />)}
           </div>
         ) : (

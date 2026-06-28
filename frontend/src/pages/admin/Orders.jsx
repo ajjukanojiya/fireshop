@@ -4,13 +4,19 @@ import api from '../../api/api';
 export default function AdminOrders() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
 
-    const loadOrders = async (status = '') => {
+    const loadOrders = async (page = 1) => {
         setLoading(true);
         try {
-            const url = status ? `/admin/orders?status=${status}` : '/admin/orders';
-            const res = await api.get(url);
+            const queryParams = new URLSearchParams({
+                page: page,
+                ...(statusFilter && { status: statusFilter }),
+                ...(searchQuery && { search: searchQuery })
+            }).toString();
+
+            const res = await api.get(`/admin/orders?${queryParams}`);
             setOrders(res.data.data); // paginate 'data'
         } catch (error) {
             console.error("Failed to load orders");
@@ -20,15 +26,26 @@ export default function AdminOrders() {
     };
 
     useEffect(() => {
-        loadOrders(filter);
-    }, [filter]);
+        loadOrders();
+    }, []);
+
+    const applyFilters = (e) => {
+        e.preventDefault();
+        loadOrders(1);
+    };
+
+    const clearFilters = () => {
+        setSearchQuery('');
+        setStatusFilter('');
+        setTimeout(() => loadOrders(1), 0);
+    };
 
     const updateStatus = async (id, newStatus) => {
         if (!window.confirm(`Mark order #${id} as ${newStatus}?`)) return;
         try {
             await api.patch(`/admin/orders/${id}/status`, { status: newStatus });
             // Refresh list
-            loadOrders(filter);
+            loadOrders();
         } catch (e) {
             alert("Failed to update status");
         }
@@ -78,7 +95,7 @@ export default function AdminOrders() {
             });
             alert("Order assigned successfully!");
             setShowAssignModal(false);
-            loadOrders(filter);
+            loadOrders();
         } catch (e) {
             alert(e?.response?.data?.message || "Failed to assign");
         }
@@ -86,19 +103,54 @@ export default function AdminOrders() {
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+            <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                 <h2 className="text-xl font-bold text-gray-800">Orders Management</h2>
-                <select
-                    value={filter}
-                    onChange={e => setFilter(e.target.value)}
-                    className="px-4 py-2 border rounded-lg bg-gray-50 text-sm"
-                >
-                    <option value="">All Orders</option>
-                    <option value="pending">Pending</option>
-                    <option value="processing">Processing</option>
-                    <option value="shipped">Shipped</option>
-                    <option value="delivered">Delivered</option>
-                </select>
+            </div>
+
+            {/* Filter Bar */}
+            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                <form onSubmit={applyFilters} className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex-1">
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Search by Order ID, Name, Phone or Email..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm shadow-sm"
+                            />
+                        </div>
+                    </div>
+                    <div className="sm:w-48">
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="block w-full py-2 px-3 border border-gray-200 bg-white rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm shadow-sm"
+                        >
+                            <option value="">All Orders</option>
+                            <option value="pending">Pending</option>
+                            <option value="processing">Processing</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div className="flex gap-2">
+                        <button type="submit" className="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-900 transition-colors">
+                            Filter
+                        </button>
+                        {(searchQuery || statusFilter) && (
+                            <button type="button" onClick={clearFilters} className="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+                                Clear
+                            </button>
+                        )}
+                    </div>
+                </form>
             </div>
 
             {/* Desktop Table View */}

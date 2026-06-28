@@ -5,8 +5,13 @@ import BulkImport from './BulkImport';
 
 export default function AdminProducts() {
     const [products, setProducts] = useState({ data: [] });
+    const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [editingProduct, setEditingProduct] = useState(null); // null = list, 'new' = add mode, obj = edit mode
+    
+    // Filters
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('');
 
     const getFullUrl = (url) => {
         if (!url) return "";
@@ -20,13 +25,41 @@ export default function AdminProducts() {
     const loadProducts = async (page = 1) => {
         setLoading(true);
         try {
-            const res = await api.get(`/admin/products?page=${page}`);
+            const queryParams = new URLSearchParams({
+                page: page,
+                ...(searchQuery && { search: searchQuery }),
+                ...(selectedCategory && { category_id: selectedCategory })
+            }).toString();
+            
+            const res = await api.get(`/admin/products?${queryParams}`);
             setProducts(res.data);
         } catch (e) { console.error(e); }
         finally { setLoading(false); }
     };
 
-    useEffect(() => { loadProducts(); }, []);
+    const loadCategories = async () => {
+        try {
+            const res = await api.get('/categories');
+            setCategories(res.data?.data || res.data || []);
+        } catch (e) { console.error(e); }
+    }
+
+    useEffect(() => { 
+        loadProducts(); 
+        loadCategories();
+    }, []);
+
+    // Handle filter application
+    const applyFilters = (e) => {
+        e.preventDefault();
+        loadProducts(1);
+    };
+
+    const clearFilters = () => {
+        setSearchQuery('');
+        setSelectedCategory('');
+        setTimeout(() => loadProducts(1), 0);
+    };
 
     const handleDelete = async (id) => {
         if (!window.confirm("Delete product?")) return;
@@ -79,6 +112,50 @@ export default function AdminProducts() {
                         + Add Product
                     </button>
                 </div>
+            </div>
+            
+            {/* Filter Bar */}
+            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                <form onSubmit={applyFilters} className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex-1">
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Search products by name or description..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm shadow-sm"
+                            />
+                        </div>
+                    </div>
+                    <div className="sm:w-48">
+                        <select
+                            value={selectedCategory}
+                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            className="block w-full py-2 px-3 border border-gray-200 bg-white rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm shadow-sm"
+                        >
+                            <option value="">All Categories</option>
+                            {categories.map(cat => (
+                                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="flex gap-2">
+                        <button type="submit" className="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-900 transition-colors">
+                            Filter
+                        </button>
+                        {(searchQuery || selectedCategory) && (
+                            <button type="button" onClick={clearFilters} className="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+                                Clear
+                            </button>
+                        )}
+                    </div>
+                </form>
             </div>
 
             {/* Mobile Card View (< md) */}

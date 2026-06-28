@@ -105,9 +105,23 @@ class ProductController extends Controller
 
         return response()->json(['status' => 'success', 'data' => $extractedItems]);
     }
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::with(['category', 'images', 'videos', 'bundleItems.product'])->latest()->paginate(10);
+        $query = Product::with(['category', 'images', 'videos', 'bundleItems.product'])->latest();
+
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'ilike', '%' . $search . '%')
+                  ->orWhere('description', 'ilike', '%' . $search . '%');
+            });
+        }
+
+        if ($request->has('category_id') && $request->category_id != '') {
+            $query->where('category_id', $request->category_id);
+        }
+
+        $products = $query->paginate(20);
         return response()->json($products);
     }
 
