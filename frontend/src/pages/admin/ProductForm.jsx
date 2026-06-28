@@ -180,7 +180,6 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
 
         try {
             const config = {
-                headers: { 'Content-Type': 'multipart/form-data' },
                 onUploadProgress: (progressEvent) => {
                     const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
                     setUploadProgress(percentCompleted);
