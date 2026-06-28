@@ -74,12 +74,12 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Video Wall: Horizontal Scroll on Mobile, Grid on Desktop */}
-            <div className="flex overflow-x-auto gap-3 md:gap-6 pb-6 snap-x snap-mandatory no-scrollbar md:grid md:grid-cols-3 lg:grid-cols-4 px-1">
+            {/* Video Wall: Grid on Mobile and Desktop */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 pb-6 px-1">
               {featured.slice(0, 4).map(p => (
                 <div 
                   key={p.id} 
-                  className="min-w-[65vw] sm:min-w-[40vw] md:min-w-0 snap-center flex-none relative group cursor-pointer flex flex-col"
+                  className="relative group cursor-pointer flex flex-col"
                   onClick={() => navigate(`/product/${p.id}`)}
                 >
                   {/* Media Aspect Container - Reels/Stories ratio */}
