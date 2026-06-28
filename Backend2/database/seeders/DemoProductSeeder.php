@@ -66,7 +66,7 @@ class DemoProductSeeder extends Seeder
                     'stock' => rand(100, 500),
                     'category_id' => $category->id,
                     'thumbnail_url' => $data['image'],
-                    'is_featured' => true,
+                    'is_featured' => false,
                     
                     // Professional Fields
                     'brand' => $brands[array_rand($brands)],
