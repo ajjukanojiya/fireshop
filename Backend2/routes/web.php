@@ -9,3 +9,8 @@ Route::get('/', function () {
 
 
 Route::get('/stream/{filename}', [VideoStreamController::class,'stream']);
+
+Route::get('/run-seed', function () {
+    \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
+    return 'Database seeded successfully!';
+});

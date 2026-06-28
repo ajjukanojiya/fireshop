@@ -8,13 +8,13 @@ class ProductSeeder extends Seeder {
   public function run() {
 
 
-    DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+    \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
 
 DB::table('videos')->truncate();
 DB::table('products')->truncate();
 DB::table('categories')->truncate();
 
-DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+    \Illuminate\Support\Facades\Schema::enableForeignKeyConstraints();
 
 
     DB::table('categories')->insert([
