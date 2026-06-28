@@ -11,6 +11,10 @@ Route::get('/', function () {
 Route::get('/stream/{filename}', [VideoStreamController::class,'stream']);
 
 Route::get('/run-seed', function () {
-    \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\MasterDemoSeeder', '--force' => true]);
-    return 'Database seeded successfully!';
+    try {
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\MasterDemoSeeder', '--force' => true]);
+        return 'Database seeded successfully!';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage() . ' | Line: ' . $e->getLine() . ' | File: ' . $e->getFile();
+    }
 });
