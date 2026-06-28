@@ -165,21 +165,7 @@ class ProductController extends Controller
             $validated['thumbnail_url'] = '/storage/' . $path;
         }
         
-        $existingProduct = Product::where('title', $validated['title'])->first();
-        if ($existingProduct) {
-            // Smart Inventory Logic: Add to existing stock instead of duplicate entry
-            $existingProduct->stock += $validated['stock']; // Math add stock (e.g. 50 + 50 = 100)
-            $existingProduct->selling_price_packet = $validated['selling_price_packet']; // Update latest price
-            $existingProduct->price = $validated['selling_price_packet'];
-            
-            if (isset($validated['thumbnail_url'])) {
-                 $existingProduct->thumbnail_url = $validated['thumbnail_url'];
-            }
-            $existingProduct->save();
-            $product = $existingProduct;
-        } else {
-            $product = Product::create($validated);
-        }
+        $product = Product::create($validated);
 
         if ($request->has('is_bundle') && $request->is_bundle && $request->has('bundle_items')) {
             $items = json_decode($request->bundle_items, true);

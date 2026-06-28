@@ -45,11 +45,13 @@ export default function Home() {
 
   const getFullUrl = (url) => {
     if (!url) return "";
+    if (url.startsWith('http')) return url;
+    const apiBase = import.meta.env.VITE_API_BASE || '';
+    const host = apiBase.replace(/\/api\/v1\/?$/, '');
     let cleanUrl = url.replace(/https?:\/\/localhost:8000/g, '');
-    if (cleanUrl.startsWith('http')) return cleanUrl;
-    if (cleanUrl.startsWith('/storage')) return cleanUrl;
-    if (cleanUrl.startsWith('storage/')) return '/' + cleanUrl;
-    return `/storage/${cleanUrl}`;
+    if (!cleanUrl.startsWith('/')) cleanUrl = '/' + cleanUrl;
+    if (!cleanUrl.startsWith('/storage/')) cleanUrl = '/storage' + cleanUrl;
+    return `${host}${cleanUrl}`;
   };
 
   return (
