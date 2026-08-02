@@ -155,14 +155,14 @@ export default function AdminProducts() {
                     </div>
                     <div className="flex flex-wrap gap-2">
                         <label className="flex items-center gap-1.5 cursor-pointer text-sm text-gray-700 bg-white px-3 py-2 border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-colors">
-                            <input type="checkbox" className="rounded border-gray-300 text-orange-500 focus:ring-orange-500" checked={showFeaturedOnly} onChange={e => setShowFeaturedOnly(e.target.checked)} />
+                            <input type="checkbox" className="rounded border-gray-300 text-orange-500 focus:ring-orange-500" checked={showFeaturedOnly} onChange={e => { setShowFeaturedOnly(e.target.checked); setTimeout(() => document.getElementById('filter-btn').click(), 0); }} />
                             <span className="font-bold text-orange-600">⭐ Premium</span>
                         </label>
                         <label className="flex items-center gap-1.5 cursor-pointer text-sm text-gray-700 bg-white px-3 py-2 border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-colors">
-                            <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked={showWithVideoOnly} onChange={e => setShowWithVideoOnly(e.target.checked)} />
+                            <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked={showWithVideoOnly} onChange={e => { setShowWithVideoOnly(e.target.checked); setTimeout(() => document.getElementById('filter-btn').click(), 0); }} />
                             <span className="font-bold text-blue-600">▶ Video</span>
                         </label>
-                        <button type="submit" className="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-900 transition-colors">
+                        <button type="submit" id="filter-btn" className="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-900 transition-colors">
                             Filter
                         </button>
                         {(searchQuery || selectedCategory || showFeaturedOnly || showWithVideoOnly) && (
