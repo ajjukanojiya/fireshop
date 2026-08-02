@@ -249,7 +249,7 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                                 <h2 className="text-sm font-bold text-gray-900 mb-4">General Information</h2>
                                 <div className="space-y-4">
                                     <div>
-                                        <label className={labelClass}>Category</label>
+                                        <label className={labelClass}>Category <span className="text-red-500">*</span></label>
                                         <select className={inputClass} value={formData.category_id} onChange={e => setFormData({ ...formData, category_id: e.target.value })} required>
                                             <option value="">Select a category</option>
                                             {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -257,11 +257,11 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className={labelClass}>Product Name</label>
+                                            <label className={labelClass}>Product Name <span className="text-red-500">*</span></label>
                                             <input className={inputClass} placeholder="e.g. Deluxe Anar" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} required />
                                         </div>
                                         <div>
-                                            <label className={labelClass}>{getSizeLabel()}</label>
+                                            <label className={labelClass}>{getSizeLabel()} <span className="text-gray-400 font-normal">(Optional)</span></label>
                                             <input className={inputClass} placeholder="e.g. 15 cm" value={formData.size} onChange={e => setFormData({ ...formData, size: e.target.value })} />
                                         </div>
                                         <div>
@@ -269,7 +269,7 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                                             <input className={inputClass} placeholder="e.g. Standard" value={formData.brand} onChange={e => setFormData({ ...formData, brand: e.target.value })} />
                                         </div>
                                         <div className="md:col-span-2">
-                                            <label className={labelClass}>Short Description</label>
+                                            <label className={labelClass}>Short Description <span className="text-gray-400 font-normal">(Optional)</span></label>
                                             <textarea rows="2" className={inputClass} placeholder="Describe the item..." value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
                                         </div>
                                     </div>
@@ -355,7 +355,7 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                                 <h2 className="text-sm font-bold text-gray-900 mb-4">Packaging Configuration</h2>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
-                                        <label className={labelClass}>Master Unit (Outer)</label>
+                                        <label className={labelClass}>Master Unit (Outer) <span className="text-gray-400 font-normal">(Optional)</span></label>
                                         <select className={inputClass} value={formData.package_type} onChange={e => setFormData({ ...formData, package_type: e.target.value })}>
                                             <option value="Box">Box (Peti)</option>
                                             <option value="Carton">Carton</option>
@@ -363,11 +363,11 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className={labelClass}>Packets per {formData.package_type}</label>
+                                        <label className={labelClass}>Packets per {formData.package_type} <span className="text-gray-400 font-normal">(Optional)</span></label>
                                         <input type="number" className={inputClass} value={formData.packets_per_peti} onChange={e => setFormData({ ...formData, packets_per_peti: e.target.value })} />
                                     </div>
                                     <div>
-                                        <label className={labelClass}>Pieces per packet</label>
+                                        <label className={labelClass}>Pieces per packet <span className="text-gray-400 font-normal">(Optional)</span></label>
                                         <input type="number" className={inputClass} value={formData.pieces_per_packet} onChange={e => setFormData({ ...formData, pieces_per_packet: e.target.value })} />
                                     </div>
                                 </div>
@@ -378,7 +378,7 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                                     <h2 className="text-sm font-bold text-gray-900 mb-4">Costing</h2>
                                     <div className="space-y-4">
                                         <div>
-                                            <label className={labelClass}>Purchase Price (Per {formData.package_type})</label>
+                                            <label className={labelClass}>Purchase Price (Per {formData.package_type}) <span className="text-gray-400 font-normal">(Optional)</span></label>
                                             <div className="relative">
                                                 <span className="absolute left-3 top-2 text-gray-500">₹</span>
                                                 <input type="number" className={inputClass + " pl-7"} placeholder="0.00" value={formData.purchase_price} onChange={e => setFormData({ ...formData, purchase_price: e.target.value })} />
@@ -401,7 +401,7 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                                     <h2 className="text-sm font-bold text-gray-900 mb-4">Selling Price</h2>
                                     <div className="space-y-4">
                                         <div>
-                                            <label className={labelClass}>Price per Packet (Main Price)</label>
+                                            <label className={labelClass}>Price per Packet (Main Price) <span className="text-red-500">*</span></label>
                                             <div className="relative">
                                                 <span className="absolute left-3 top-2 text-gray-500">₹</span>
                                                 <input type="number" className={inputClass + " pl-7 border-blue-300 focus:ring-blue-500/30"} placeholder="0" value={formData.selling_price_packet} onChange={e => setFormData({ ...formData, selling_price_packet: e.target.value })} required />
@@ -425,7 +425,7 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                                 <h2 className="text-sm font-bold text-gray-900 mb-4">Inventory</h2>
                                 <div className="flex items-center gap-6">
                                     <div className="w-1/2">
-                                        <label className={labelClass}>Opening Qty ({formData.package_type}s)</label>
+                                        <label className={labelClass}>Opening Qty ({formData.package_type}s) <span className="text-gray-400 font-normal">(Optional)</span></label>
                                         <input type="number" className={inputClass} placeholder="0" value={formData.opening_stock_peti} onChange={e => setFormData({ ...formData, opening_stock_peti: e.target.value })} />
                                     </div>
                                     <div className="w-1/2 p-3 bg-blue-50/50 rounded-lg border border-blue-100 flex flex-col justify-center">
@@ -505,20 +505,20 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                                     <div className="space-y-4">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label className={labelClass}>Noise Level</label>
+                                                <label className={labelClass}>Noise Level <span className="text-gray-400 font-normal">(Optional)</span></label>
                                                 <select className={inputClass} value={formData.noise_level} onChange={e => setFormData({ ...formData, noise_level: e.target.value })}>
                                                     <option>Low</option><option>Medium</option><option>High</option><option>Boom!</option>
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className={labelClass}>Usage</label>
+                                                <label className={labelClass}>Usage <span className="text-gray-400 font-normal">(Optional)</span></label>
                                                 <select className={inputClass} value={formData.use_type} onChange={e => setFormData({ ...formData, use_type: e.target.value })}>
                                                     <option>Outdoor</option><option>Indoor</option><option>Both</option>
                                                 </select>
                                             </div>
                                         </div>
                                         <div>
-                                            <label className={labelClass}>Season Focus</label>
+                                            <label className={labelClass}>Season Focus <span className="text-gray-400 font-normal">(Optional)</span></label>
                                             <select className={inputClass} value={formData.season} onChange={e => setFormData({ ...formData, season: e.target.value })}>
                                                 <option>Diwali</option><option>Wedding</option><option>All Year</option>
                                             </select>
@@ -534,11 +534,11 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
                                     <h2 className="text-sm font-bold text-gray-900 mb-4">Tax & Compliance</h2>
                                     <div className="space-y-4">
                                         <div>
-                                            <label className={labelClass}>HSN Code</label>
+                                            <label className={labelClass}>HSN Code <span className="text-gray-400 font-normal">(Optional)</span></label>
                                             <input className={inputClass} placeholder="e.g. 3604" value={formData.hsn_code} onChange={e => setFormData({ ...formData, hsn_code: e.target.value })} />
                                         </div>
                                         <div>
-                                            <label className={labelClass}>GST Percentage</label>
+                                            <label className={labelClass}>GST Percentage <span className="text-gray-400 font-normal">(Optional)</span></label>
                                             <select className={inputClass} value={formData.gst_percentage} onChange={e => setFormData({ ...formData, gst_percentage: e.target.value })}>
                                                 <option value="">Exempt (0%)</option>
                                                 <option value="5">5%</option>

@@ -36,8 +36,17 @@ export default function BulkImport({ onCancel, onSuccess }) {
     }, []);
 
     const downloadTemplate = () => {
-        const headers = ["title", "category_name", "description", "brand", "selling_price_packet", "package_type", "pieces_per_packet", "packets_per_peti", "stock"];
-        const csv = Papa.unparse({ fields: headers, data: [["Sample Product", "Firecrackers", "Awesome cracker", "SuperBrand", 1500, "Box", 10, 5, 100]] });
+        const headers = [
+            "category_name", "title", "size", "brand", "description", 
+            "package_type", "packets_per_peti", "pieces_per_packet", 
+            "purchase_price", "selling_price_packet", "selling_price_peti", "selling_price_piece", 
+            "stock", "noise_level", "use_type", "season", "is_kids_safe", 
+            "hsn_code", "gst_percentage", "is_featured", "is_bundle", "thumbnail_url"
+        ];
+        const sampleData = [
+            ["Firecrackers", "Sample Product", "Standard", "SuperBrand", "Awesome cracker", "Box", 10, 5, 1000, 1500, 14000, 350, 100, "High", "Outdoor", "Diwali", 0, "3604", 18, 0, 0, "https://example.com/image.jpg"]
+        ];
+        const csv = Papa.unparse({ fields: headers, data: sampleData });
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -79,13 +88,26 @@ export default function BulkImport({ onCancel, onSuccess }) {
                         id: idx, // temporary id
                         title: row.title || '',
                         category_id: category_id,
+                        size: row.size || '',
                         description: row.description || '',
                         brand: row.brand || '',
                         package_type: row.package_type || '',
                         pieces_per_packet: row.pieces_per_packet || '',
                         packets_per_peti: row.packets_per_peti || '',
+                        purchase_price: row.purchase_price || '',
                         selling_price_packet: row.selling_price_packet || '',
+                        selling_price_peti: row.selling_price_peti || '',
+                        selling_price_piece: row.selling_price_piece || '',
                         stock: row.stock || '0',
+                        noise_level: row.noise_level || '',
+                        use_type: row.use_type || '',
+                        season: row.season || '',
+                        is_kids_safe: row.is_kids_safe || '0',
+                        hsn_code: row.hsn_code || '',
+                        gst_percentage: row.gst_percentage || '',
+                        is_featured: row.is_featured || '0',
+                        is_bundle: row.is_bundle || '0',
+                        thumbnail_url: row.thumbnail_url || '',
                         // Media specific
                         thumbnail: null,
                         images: [],
