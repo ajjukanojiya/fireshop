@@ -12,6 +12,8 @@ export default function AdminProducts() {
     // Filters
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
+    const [showFeaturedOnly, setShowFeaturedOnly] = useState(false);
+    const [showWithVideoOnly, setShowWithVideoOnly] = useState(false);
 
     const getFullUrl = (url) => {
         if (!url) return "";
@@ -30,7 +32,9 @@ export default function AdminProducts() {
             const queryParams = new URLSearchParams({
                 page: page,
                 ...(searchQuery && { search: searchQuery }),
-                ...(selectedCategory && { category_id: selectedCategory })
+                ...(selectedCategory && { category_id: selectedCategory }),
+                ...(showFeaturedOnly && { is_featured: 'true' }),
+                ...(showWithVideoOnly && { has_video: 'true' })
             }).toString();
             
             const res = await api.get(`/admin/products?${queryParams}`);
@@ -60,6 +64,8 @@ export default function AdminProducts() {
     const clearFilters = () => {
         setSearchQuery('');
         setSelectedCategory('');
+        setShowFeaturedOnly(false);
+        setShowWithVideoOnly(false);
         setTimeout(() => loadProducts(1), 0);
     };
 
@@ -147,11 +153,19 @@ export default function AdminProducts() {
                             ))}
                         </select>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
+                        <label className="flex items-center gap-1.5 cursor-pointer text-sm text-gray-700 bg-white px-3 py-2 border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-colors">
+                            <input type="checkbox" className="rounded border-gray-300 text-orange-500 focus:ring-orange-500" checked={showFeaturedOnly} onChange={e => setShowFeaturedOnly(e.target.checked)} />
+                            <span className="font-bold text-orange-600">⭐ Premium</span>
+                        </label>
+                        <label className="flex items-center gap-1.5 cursor-pointer text-sm text-gray-700 bg-white px-3 py-2 border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-colors">
+                            <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked={showWithVideoOnly} onChange={e => setShowWithVideoOnly(e.target.checked)} />
+                            <span className="font-bold text-blue-600">▶ Video</span>
+                        </label>
                         <button type="submit" className="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-900 transition-colors">
                             Filter
                         </button>
-                        {(searchQuery || selectedCategory) && (
+                        {(searchQuery || selectedCategory || showFeaturedOnly || showWithVideoOnly) && (
                             <button type="button" onClick={clearFilters} className="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
                                 Clear
                             </button>
@@ -174,9 +188,14 @@ export default function AdminProducts() {
                             <div className="flex-1 min-w-0">
                                 <div className="flex justify-between items-start">
                                     <h3 className="font-bold text-gray-900 line-clamp-2 leading-tight mb-1">{p.title}</h3>
-                                    {p.is_featured === 1 && (
-                                        <span className="text-[10px] bg-red-50 text-red-600 px-1.5 rounded border border-red-100 font-bold ml-2 whitespace-nowrap">HOT</span>
-                                    )}
+                                    <div className="flex flex-col gap-1 items-end ml-2 shrink-0">
+                                        {p.is_featured === 1 && (
+                                            <span className="text-[10px] bg-gradient-to-r from-amber-200 to-orange-400 text-orange-900 px-1.5 py-0.5 rounded shadow-sm font-black whitespace-nowrap tracking-wider">⭐ PREMIUM</span>
+                                        )}
+                                        {p.videos && p.videos.length > 0 && (
+                                            <span className="text-[10px] bg-blue-100 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded font-black whitespace-nowrap flex items-center gap-1"><span className="text-[8px]">▶</span> VIDEO</span>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="text-xs text-gray-500 mb-2">{p.category?.name} • {p.unit_value} {p.unit}</div>
 
@@ -226,11 +245,18 @@ export default function AdminProducts() {
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="font-medium text-gray-900 line-clamp-1">{p.title}</span>
-                                                {p.is_featured === 1 && (
-                                                    <span className="text-[10px] font-black text-red-600 bg-red-50 border border-red-100 px-1.5 py-0.5 rounded w-fit mt-0.5">
-                                                        FEATURED
-                                                    </span>
-                                                )}
+                                                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                                    {p.is_featured === 1 && (
+                                                        <span className="text-[10px] font-black text-orange-900 bg-gradient-to-r from-amber-200 to-orange-400 shadow-sm px-1.5 py-0.5 rounded w-fit tracking-wider">
+                                                            ⭐ PREMIUM
+                                                        </span>
+                                                    )}
+                                                    {p.videos && p.videos.length > 0 && (
+                                                        <span className="text-[10px] font-black text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded w-fit flex items-center gap-1">
+                                                            <span className="text-[8px]">▶</span> HAS VIDEO
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
