@@ -365,13 +365,30 @@ export default function BulkImport({ onCancel, onSuccess }) {
                             <table className="w-full text-left text-sm whitespace-nowrap relative">
                             <thead className="bg-gray-50 text-gray-600 sticky top-0 z-10 shadow-sm">
                                 <tr>
-                                    <th className="p-3">#</th>
-                                    <th className="p-3">Title</th>
-                                    <th className="p-3">Category</th>
-                                    <th className="p-3">S. Price</th>
-                                    <th className="p-3">Stock</th>
-                                    <th className="p-3 text-center">Media (Img/Vid)</th>
-                                    <th className="p-3 text-center">Action</th>
+                                    <th className="p-3 font-semibold">#</th>
+                                    <th className="p-3 font-semibold">Category</th>
+                                    <th className="p-3 font-semibold">Title</th>
+                                    <th className="p-3 font-semibold">Size</th>
+                                    <th className="p-3 font-semibold">Brand</th>
+                                    <th className="p-3 font-semibold">Description</th>
+                                    <th className="p-3 font-semibold">Pack Type</th>
+                                    <th className="p-3 font-semibold">Pkts / Peti</th>
+                                    <th className="p-3 font-semibold">Pcs / Pkt</th>
+                                    <th className="p-3 font-semibold">Purch. Price</th>
+                                    <th className="p-3 font-semibold">Sell / Pkt</th>
+                                    <th className="p-3 font-semibold">Sell / Peti</th>
+                                    <th className="p-3 font-semibold">Sell / Pce</th>
+                                    <th className="p-3 font-semibold">Stock</th>
+                                    <th className="p-3 font-semibold">Noise Level</th>
+                                    <th className="p-3 font-semibold">Usage</th>
+                                    <th className="p-3 font-semibold">Season</th>
+                                    <th className="p-3 font-semibold text-center">Kids Safe</th>
+                                    <th className="p-3 font-semibold">HSN</th>
+                                    <th className="p-3 font-semibold">GST %</th>
+                                    <th className="p-3 font-semibold text-center">Featured</th>
+                                    <th className="p-3 font-semibold text-center">Bundle</th>
+                                    <th className="p-3 font-semibold text-center">Media</th>
+                                    <th className="p-3 font-semibold text-center sticky right-0 bg-gray-50 z-20 shadow-[-4px_0_10px_-4px_rgba(0,0,0,0.1)]">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
@@ -379,33 +396,70 @@ export default function BulkImport({ onCancel, onSuccess }) {
                                     <tr key={i} className="hover:bg-slate-50 transition-colors">
                                         <td className="p-3 text-gray-400 font-bold">{i + 1}</td>
                                         <td className="p-3">
-                                            <input className="border border-gray-300 rounded px-2 py-1 w-48 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" 
-                                                   value={row.title} onChange={e => handleDataChange(i, 'title', e.target.value)} />
-                                        </td>
-                                        <td className="p-3">
-                                            <select className="border border-gray-300 rounded px-2 py-1 w-32 text-sm" 
+                                            <select className="border border-gray-300 rounded px-2 py-1 w-32 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" 
                                                     value={row.category_id} onChange={e => handleDataChange(i, 'category_id', e.target.value)}>
                                                 <option value="">Select Category</option>
                                                 {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                             </select>
                                         </td>
                                         <td className="p-3">
-                                            <input type="number" className="border border-gray-300 rounded px-2 py-1 w-24 text-sm" 
-                                                   value={row.selling_price_packet} onChange={e => handleDataChange(i, 'selling_price_packet', e.target.value)} />
+                                            <input className="border border-gray-300 rounded px-2 py-1 w-48 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" 
+                                                   value={row.title} onChange={e => handleDataChange(i, 'title', e.target.value)} />
                                         </td>
                                         <td className="p-3">
-                                            <input type="number" className="border border-gray-300 rounded px-2 py-1 w-20 text-sm" 
-                                                   value={row.stock} onChange={e => handleDataChange(i, 'stock', e.target.value)} />
+                                            <input className="border border-gray-300 rounded px-2 py-1 w-24 text-sm" value={row.size} onChange={e => handleDataChange(i, 'size', e.target.value)} />
                                         </td>
+                                        <td className="p-3">
+                                            <input className="border border-gray-300 rounded px-2 py-1 w-28 text-sm" value={row.brand} onChange={e => handleDataChange(i, 'brand', e.target.value)} />
+                                        </td>
+                                        <td className="p-3">
+                                            <input className="border border-gray-300 rounded px-2 py-1 w-48 text-sm" value={row.description} onChange={e => handleDataChange(i, 'description', e.target.value)} />
+                                        </td>
+                                        <td className="p-3">
+                                            <select className="border border-gray-300 rounded px-2 py-1 w-24 text-sm" value={row.package_type} onChange={e => handleDataChange(i, 'package_type', e.target.value)}>
+                                                <option value="Box">Box</option><option value="Carton">Carton</option><option value="Sack">Sack</option><option value="">None</option>
+                                            </select>
+                                        </td>
+                                        <td className="p-3"><input type="number" className="border border-gray-300 rounded px-2 py-1 w-20 text-sm" value={row.packets_per_peti} onChange={e => handleDataChange(i, 'packets_per_peti', e.target.value)} /></td>
+                                        <td className="p-3"><input type="number" className="border border-gray-300 rounded px-2 py-1 w-20 text-sm" value={row.pieces_per_packet} onChange={e => handleDataChange(i, 'pieces_per_packet', e.target.value)} /></td>
+                                        <td className="p-3"><input type="number" className="border border-gray-300 rounded px-2 py-1 w-24 text-sm" value={row.purchase_price} onChange={e => handleDataChange(i, 'purchase_price', e.target.value)} /></td>
+                                        <td className="p-3"><input type="number" className="border border-gray-300 rounded px-2 py-1 w-24 text-sm font-semibold text-blue-700" value={row.selling_price_packet} onChange={e => handleDataChange(i, 'selling_price_packet', e.target.value)} /></td>
+                                        <td className="p-3"><input type="number" className="border border-gray-300 rounded px-2 py-1 w-24 text-sm" value={row.selling_price_peti} onChange={e => handleDataChange(i, 'selling_price_peti', e.target.value)} /></td>
+                                        <td className="p-3"><input type="number" className="border border-gray-300 rounded px-2 py-1 w-24 text-sm" value={row.selling_price_piece} onChange={e => handleDataChange(i, 'selling_price_piece', e.target.value)} /></td>
+                                        <td className="p-3"><input type="number" className="border border-gray-300 rounded px-2 py-1 w-20 text-sm font-bold text-gray-800" value={row.stock} onChange={e => handleDataChange(i, 'stock', e.target.value)} /></td>
+                                        <td className="p-3">
+                                            <select className="border border-gray-300 rounded px-2 py-1 w-24 text-sm" value={row.noise_level} onChange={e => handleDataChange(i, 'noise_level', e.target.value)}>
+                                                <option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option><option value="Boom!">Boom!</option><option value="">None</option>
+                                            </select>
+                                        </td>
+                                        <td className="p-3">
+                                            <select className="border border-gray-300 rounded px-2 py-1 w-24 text-sm" value={row.use_type} onChange={e => handleDataChange(i, 'use_type', e.target.value)}>
+                                                <option value="Outdoor">Outdoor</option><option value="Indoor">Indoor</option><option value="Both">Both</option><option value="">None</option>
+                                            </select>
+                                        </td>
+                                        <td className="p-3">
+                                            <select className="border border-gray-300 rounded px-2 py-1 w-24 text-sm" value={row.season} onChange={e => handleDataChange(i, 'season', e.target.value)}>
+                                                <option value="Diwali">Diwali</option><option value="Wedding">Wedding</option><option value="All Year">All Year</option><option value="">None</option>
+                                            </select>
+                                        </td>
+                                        <td className="p-3 text-center"><input type="checkbox" checked={row.is_kids_safe == 1 || row.is_kids_safe === 'true' || row.is_kids_safe === true} onChange={e => handleDataChange(i, 'is_kids_safe', e.target.checked ? 1 : 0)} className="w-4 h-4 text-blue-600 rounded" /></td>
+                                        <td className="p-3"><input className="border border-gray-300 rounded px-2 py-1 w-20 text-sm" value={row.hsn_code} onChange={e => handleDataChange(i, 'hsn_code', e.target.value)} /></td>
+                                        <td className="p-3">
+                                            <select className="border border-gray-300 rounded px-2 py-1 w-20 text-sm" value={row.gst_percentage} onChange={e => handleDataChange(i, 'gst_percentage', e.target.value)}>
+                                                <option value="18">18%</option><option value="12">12%</option><option value="5">5%</option><option value="28">28%</option><option value="0">0%</option><option value="">None</option>
+                                            </select>
+                                        </td>
+                                        <td className="p-3 text-center"><input type="checkbox" checked={row.is_featured == 1 || row.is_featured === 'true' || row.is_featured === true} onChange={e => handleDataChange(i, 'is_featured', e.target.checked ? 1 : 0)} className="w-4 h-4 text-blue-600 rounded" /></td>
+                                        <td className="p-3 text-center"><input type="checkbox" checked={row.is_bundle == 1 || row.is_bundle === 'true' || row.is_bundle === true} onChange={e => handleDataChange(i, 'is_bundle', e.target.checked ? 1 : 0)} className="w-4 h-4 text-blue-600 rounded" /></td>
                                         <td className="p-3 text-center">
-                                            <button onClick={() => openMediaSelector(i)} className="bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1 rounded hover:bg-blue-100 font-medium text-xs transition-colors">
+                                            <button onClick={() => openMediaSelector(i)} className="bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1 rounded hover:bg-blue-100 font-medium text-xs transition-colors whitespace-nowrap">
                                                 {row.thumbnail || row.images.length || row.videos.length ? 
                                                     `📎 ${row.thumbnail ? 1 : 0} Thmb, ${row.images.length} Img, ${row.videos.length} Vid` : 
                                                     "+ Attach Media"
                                                 }
                                             </button>
                                         </td>
-                                        <td className="p-3 text-center">
+                                        <td className="p-3 text-center sticky right-0 bg-white z-10 shadow-[-4px_0_10px_-4px_rgba(0,0,0,0.1)] group-hover:bg-slate-50 transition-colors">
                                             <button onClick={() => deleteRow(i)} className="text-red-500 hover:bg-red-50 p-1.5 rounded" title="Delete Row">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
                                             </button>
