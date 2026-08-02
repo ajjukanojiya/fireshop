@@ -219,7 +219,12 @@ export default function AdminProductForm({ product, onSuccess, onCancel }) {
         <div className="bg-gray-50/50 min-h-full p-4 md:p-6 lg:p-8">
             <div className="max-w-3xl mx-auto">
                 <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{product ? 'Edit Product' : 'Add New Product'}</h1>
+                    <div className="flex items-center gap-3">
+                        <button type="button" onClick={onCancel} className="text-gray-600 hover:text-gray-900 bg-white border border-gray-200 hover:border-gray-300 rounded-lg px-3 py-1.5 text-sm font-semibold shadow-sm transition-colors flex items-center gap-2">
+                            <span>&larr;</span> Back
+                        </button>
+                        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{product ? 'Edit Product' : 'Add New Product'}</h1>
+                    </div>
                 </div>
 
                 {/* SLEEK TAB NAVIGATION */}
