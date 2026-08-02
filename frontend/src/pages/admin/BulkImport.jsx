@@ -351,7 +351,7 @@ export default function BulkImport({ onCancel, onSuccess }) {
                     )}
 
                     {/* Right Panel: Extracted Data */}
-                    <div className="flex-1 flex flex-col min-w-0">
+                    <div className="flex-1 flex flex-col min-w-0 min-h-0">
                         <div className="flex justify-between items-end mb-4 pr-1">
                             <h3 className="font-bold text-gray-800 text-lg">Review Table ({data.length} Detected)</h3>
                             {aiImagePreview && (
@@ -361,7 +361,7 @@ export default function BulkImport({ onCancel, onSuccess }) {
                             )}
                         </div>
                         
-                        <div className="flex-1 overflow-auto border border-gray-200 rounded-xl shadow-sm bg-white">
+                        <div className="flex-1 min-h-0 overflow-auto border border-gray-200 rounded-xl shadow-sm bg-white">
                             <table className="w-full text-left text-sm whitespace-nowrap relative">
                             <thead className="bg-gray-50 text-gray-600 sticky top-0 z-10 shadow-sm">
                                 <tr>
@@ -416,13 +416,13 @@ export default function BulkImport({ onCancel, onSuccess }) {
                         </table>
                     </div>
                     
-                    <div className="mt-4 flex justify-start">
+                    <div className="mt-4 flex justify-start flex-shrink-0">
                         <button onClick={addEmptyRow} className="px-4 py-2 border border-dashed border-indigo-300 text-indigo-600 rounded-lg hover:bg-indigo-50 font-bold flex items-center gap-2 transition-all">
                             <span>+</span> Add Missed Item (Empty Row)
                         </button>
                     </div>
 
-                    <div className="mt-6 flex justify-end gap-3">
+                    <div className="mt-6 flex justify-end gap-3 flex-shrink-0">
                         <button onClick={() => { setStep(1); setAiImagePreview(null); }} className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50">Back</button>
                         <button onClick={startUpload} className="px-5 py-2.5 bg-green-600 shadow-md shadow-green-200 text-white rounded-xl font-bold hover:bg-green-700">
                             🚀 Import {data.length} Products
